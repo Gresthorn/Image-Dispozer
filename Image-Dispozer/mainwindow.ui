@@ -6,35 +6,34 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>270</width>
-    <height>233</height>
+    <width>406</width>
+    <height>247</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Image dispozer</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="clickMe">
-    <property name="geometry">
-     <rect>
-      <x>9</x>
-      <y>15</y>
-      <width>251</width>
-      <height>121</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Click Me</string>
-    </property>
-   </widget>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QPushButton" name="clickMe">
+      <property name="text">
+       <string>Click Me</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QWidget" name="sceneWidget" native="true"/>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>270</width>
-     <height>21</height>
+     <width>406</width>
+     <height>20</height>
     </rect>
    </property>
   </widget>

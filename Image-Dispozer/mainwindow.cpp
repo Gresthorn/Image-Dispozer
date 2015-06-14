@@ -9,6 +9,40 @@ MainWindow::MainWindow(QWidget *parent) :
 
     initializeTreeItems();
 
+    // create new scene and view
+    scene = new imageScene(this);
+    scene->setBackgroundBrush(QBrush(QColor(36, 38, 41), Qt::SolidPattern));
+    view = new imageView(scene, this);
+    // add border to the scene
+    hSize = 800.0;
+    vSize = 600.0;
+
+    view->scale(1.0, -1.0);
+    qreal offset = 6.0; // because of borders (when windows gets too small and scrollbars are to be appeared)
+    view->setSceneRect(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0); // +-offset is because of scrollbars which appear if windows is too small
+    view->centerOn(hSize/2.0, vSize/2.0);
+    view->setDragMode(QGraphicsView::ScrollHandDrag);
+    view->setInteractive(true);
+    view->setMouseTracking(true);
+
+    // add border
+    borderRect = scene->addRect(0.0, 0.0, hSize, vSize, QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap), QBrush(QColor(220, 220, 220)));
+
+    // display view in mainWindow
+    QVBoxLayout * sceneWidgetLayout = new QVBoxLayout;
+    sceneWidgetLayout->addWidget(view);
+    ui->sceneWidget->setLayout(sceneWidgetLayout);
+
+    // set window size to try show up all rectangle
+    if(hSize*0.6<1336 && vSize*0.6<768)
+        this->setGeometry(0, 100, hSize+150.0, vSize+150.0);
+
+    // TEST PURPOSES ONLY
+    /*resizeRect * r_rect = new resizeRect(200, 200, 300, 300, NULL);
+    image_handler * i_handler =  new image_handler(QString("XXX\\Lena.jpg"), 0, 0);
+    r_rect->setPixmap(i_handler);
+    scene->addItem(r_rect);*/
+
     connect(ui->clickMe, SIGNAL(clicked()), this, SLOT(imageSelectorWindow()));
 }
 

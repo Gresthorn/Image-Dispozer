@@ -7,10 +7,14 @@
 #include <QList>
 #include <QFile>
 #include <QDebug>
+#include <QGraphicsRectItem>
+#include <QVBoxLayout>
 
 #include "imageselector.h"
 #include "image_handler.h"
 #include "rolestring.h"
+#include "imageview.h"
+#include "imagescene.h"
 
 namespace Ui {
 class MainWindow;
@@ -30,6 +34,13 @@ private:
     QList<image_handler * > * imageItems;
     QStringList * importedImages;
     QVector<roleString * > * rolesList;
+
+    imageScene * scene;
+    imageView * view;
+    qreal hSize;
+    qreal vSize;
+
+    QGraphicsRectItem * borderRect;
 
     void initializeTreeItems(void);
 
