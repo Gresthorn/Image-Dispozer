@@ -14,7 +14,7 @@ image_handler::image_handler(QString path, int roleCode, int index)
         fileOK = loadImage(imagePath);
     else fileOK = false;
 
-    changed = false;
+    currentlyDisplayed = changed = false;
 }
 
 image_handler::image_handler(QPixmap img, QString path, int roleCode, int index, bool file_correct)

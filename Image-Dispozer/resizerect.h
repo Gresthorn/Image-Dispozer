@@ -78,7 +78,7 @@ private:
 
     int constantZIndex;
 
-    QPixmap image;
+    image_handler * image;
     qreal flipX, flipY;
 
     qreal xPos, yPos, width, height;
@@ -108,11 +108,13 @@ public:
     QSize getCurrentSize(void) { return QSize(width, height); }
 
     void setPixmap(image_handler *handler);
+    void prepareForDeletion(void);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
 
 signals:
+    void isBeingDeleted(resizeRect * );
 };
 
 #endif // RESIZERECT_H

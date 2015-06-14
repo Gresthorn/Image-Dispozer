@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>406</width>
-    <height>247</height>
+    <width>687</width>
+    <height>454</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,15 +15,31 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QPushButton" name="clickMe">
-      <property name="text">
-       <string>Click Me</string>
+    <item row="0" column="1">
+     <widget class="QWidget" name="sceneWidget" native="true">
+      <property name="statusTip">
+       <string>Main dispozer scene</string>
+      </property>
+      <property name="whatsThis">
+       <string>This is the main scene where you can dispoze imported images in their correct position and model your own arrangements.</string>
       </property>
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QWidget" name="sceneWidget" native="true"/>
+     <widget class="QListWidget" name="rolesListWidget">
+      <property name="maximumSize">
+       <size>
+        <width>150</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="statusTip">
+       <string>List of all elements that need to be linked with image</string>
+      </property>
+      <property name="whatsThis">
+       <string>This list contains all elements/roles that are needed to be linked with desired image and placed in main scene at appropriate coordinates</string>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>
@@ -32,10 +48,17 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>406</width>
-     <height>20</height>
+     <width>687</width>
+     <height>21</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionImport"/>
+   </widget>
+   <addaction name="menuFile"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -46,6 +69,11 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionImport">
+   <property name="text">
+    <string>Import </string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>

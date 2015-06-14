@@ -13,9 +13,13 @@ MainWindow::MainWindow(QWidget *parent) :
     scene = new imageScene(this);
     scene->setBackgroundBrush(QBrush(QColor(36, 38, 41), Qt::SolidPattern));
     view = new imageView(scene, this);
+    view->setOrthogonalRotation(true);
     // add border to the scene
-    hSize = 800.0;
-    vSize = 600.0;
+    hSize = 320;
+    vSize = 240;
+
+    // here initial scale is being calclated/set
+    qreal init_scale = 1.8;
 
     view->scale(1.0, -1.0);
     qreal offset = 6.0; // because of borders (when windows gets too small and scrollbars are to be appeared)
@@ -24,26 +28,30 @@ MainWindow::MainWindow(QWidget *parent) :
     view->setDragMode(QGraphicsView::ScrollHandDrag);
     view->setInteractive(true);
     view->setMouseTracking(true);
+    // zoom in a little, so the initial view is bigger and better to be seen
+    view->scale(init_scale, init_scale);
 
     // add border
     borderRect = scene->addRect(0.0, 0.0, hSize, vSize, QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap), QBrush(QColor(220, 220, 220)));
 
     // display view in mainWindow
     QVBoxLayout * sceneWidgetLayout = new QVBoxLayout;
+    sceneWidgetLayout->setContentsMargins(0, 0, 0, 0);
     sceneWidgetLayout->addWidget(view);
     ui->sceneWidget->setLayout(sceneWidgetLayout);
 
     // set window size to try show up all rectangle
-    if(hSize*0.6<1336 && vSize*0.6<768)
-        this->setGeometry(0, 100, hSize+150.0, vSize+150.0);
+    if(hSize*init_scale*0.6<1336 && vSize*init_scale*0.6<768)
+        this->setGeometry(100, 100, hSize*init_scale+150.0+ui->rolesListWidget->width(), vSize*init_scale+150.0);
 
     // TEST PURPOSES ONLY
-    /*resizeRect * r_rect = new resizeRect(200, 200, 300, 300, NULL);
-    image_handler * i_handler =  new image_handler(QString("XXX\\Lena.jpg"), 0, 0);
+    /*resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
+    image_handler * i_handler =  new image_handler(QString("XXX\\lena.bmp"), 0, 0);
     r_rect->setPixmap(i_handler);
     scene->addItem(r_rect);*/
 
-    connect(ui->clickMe, SIGNAL(clicked()), this, SLOT(imageSelectorWindow()));
+    connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
+    connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
 }
 
 MainWindow::~MainWindow()
@@ -117,6 +125,27 @@ void MainWindow::initializeTreeItems()
     {
         imageItems->append(new image_handler(QString(), rolesList->at(i)->getRoleCode(), i));
     }
+
+    updateRolesListWidget();
+
+    // create list for graphical items
+    resizeRectItems = new QList<resizeRect * >;
+}
+
+void MainWindow::updateRolesListWidget()
+{
+    ui->rolesListWidget->clear();
+
+    int index, i;
+    i=0;
+    for(QList<image_handler * >::iterator it = imageItems->begin(); it<imageItems->end(); it++)
+    {
+        index = (*it)->getIndex();
+        QListWidgetItem * item = new QListWidgetItem(*rolesList->at(index));
+        item->setData(Qt::UserRole, i); // each item will have direct access to image_handler
+        ui->rolesListWidget->addItem(item);
+        ++i;
+    }
 }
 
 void MainWindow::imageSelectorWindow()
@@ -124,4 +153,45 @@ void MainWindow::imageSelectorWindow()
     // create dialog window for selecting and linking images to their appropriate roles
     ImageSelector im_select_window(rolesList, imageItems, importedImages, this);
     im_select_window.exec();
+}
+
+void MainWindow::displayNewRectItem(int row)
+{
+    int index = ui->rolesListWidget->currentItem()->data(Qt::UserRole).toInt();
+
+    if(!imageItems->at(index)->isCurrentlyDisplayed())
+    {
+        if(imageItems->at(index)->isFileCorrect())
+        {
+            qreal xSize = imageItems->at(index)->width();
+            qreal ySize = imageItems->at(index)->height();
+
+            // note that you can access xSize or ySize from inside the
+            resizeRect * r_rect = new resizeRect(xSize, ySize, 100, 100, NULL);
+            // set item handler status of currently displayed boolean to true
+            imageItems->at(index)->setCurrentlyDisplayed(true);
+            r_rect->setPixmap(imageItems->at(index));
+
+            resizeRectItems->append(r_rect);
+            connect(r_rect, SIGNAL(isBeingDeleted(resizeRect*)), this, SLOT(deleteResizeRectItem(resizeRect*)));
+            // append to rect items vector, so we have easy access to all rect items in scene
+            scene->addItem(r_rect);
+
+        }
+        else ui->statusBar->showMessage(tr("This element has not been associated yet"));
+    }
+    else ui->statusBar->showMessage(tr("This element is already displayed"));
+}
+
+void MainWindow::deleteResizeRectItem(resizeRect *item)
+{
+    // find item in our list of displayed item and remove it from the list
+    for(int i=0; i<resizeRectItems->count(); i++)
+    {
+        if(resizeRectItems->at(i)==item)
+        {
+            resizeRectItems->removeAt(i);
+            break; // since we already deleted the item, there is no need to continue in loop
+        }
+    }
 }

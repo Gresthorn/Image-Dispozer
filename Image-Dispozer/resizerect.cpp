@@ -25,7 +25,7 @@ resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent
 
     constantZIndex = 1;
 
-    image = QPixmap(); // empty pixmap
+    image = NULL;
 
     setFlag(QGraphicsItem::ItemIsSelectable);
     setFlag(QGraphicsItem::ItemIsMovable);
@@ -36,12 +36,20 @@ resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent
 
 resizeRect::~resizeRect()
 {
-
+    // DO NOT DELETE 'image' SINCE THE HANDLER IS USED ALSO OUTSIDE THIS OBJECT !!!!
 }
 
 void resizeRect::incrementRotation(qreal angle)
 {
-    setRotation(rotation()+angle);
+    qreal temp_rot = rotation()+angle;
+    temp_rot = (((temp_rot)<0.0) ? temp_rot+360.0 : temp_rot);
+
+    if(qFuzzyCompare(temp_rot, 360)) setRotation(0.0);
+    else
+    {
+        if(temp_rot>360.0) temp_rot = 90.0;
+        setRotation(temp_rot);
+    }
 }
 
 void resizeRect::switchFlipX()
@@ -56,11 +64,21 @@ void resizeRect::switchFlipY()
 
 void resizeRect::setPixmap(image_handler *handler)
 {
-    image = *handler;
+    image = handler;
+}
+
+void resizeRect::prepareForDeletion()
+{
+    image->setCurrentlyDisplayed(false);
+    emit isBeingDeleted(this);
+    this->deleteLater();
 }
 
 void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
+    Q_UNUSED(option)
+    Q_UNUSED(widget)
+
     if(isSelected())
     {
         // if item is selected, draw also bordering with resize handlers
@@ -90,7 +108,14 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     painter->save();
     painter->scale(flipX*1.0, flipY*1.0);
-    painter->drawPixmap(topLeft.x(), -topLeft.y(), width, height, image);
+    if(image!=NULL) painter->drawPixmap(topLeft.x(), -topLeft.y(), width, height, *image);
+    else
+    {
+        // if missing pixmap, draw rectangle with cross inside
+        painter->drawRect(QRectF(topLeft, bottomRight));
+        painter->drawLine(topLeft, bottomRight);
+        painter->drawLine(topRight, bottomLeft);
+    }
     painter->restore();
 }
 

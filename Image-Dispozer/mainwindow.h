@@ -32,6 +32,7 @@ private:
     Ui::MainWindow *ui;
 
     QList<image_handler * > * imageItems;
+    QList<resizeRect * > * resizeRectItems;
     QStringList * importedImages;
     QVector<roleString * > * rolesList;
 
@@ -43,9 +44,12 @@ private:
     QGraphicsRectItem * borderRect;
 
     void initializeTreeItems(void);
+    void updateRolesListWidget(void);
 
 public slots:
     void imageSelectorWindow(void);
+    void displayNewRectItem(int row);
+    void deleteResizeRectItem(resizeRect * item);
 };
 
 #endif // MAINWINDOW_H

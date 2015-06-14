@@ -17,6 +17,7 @@ private:
 
     bool fileOK;
     bool changed;
+    bool currentlyDisplayed;
 
     bool loadImage(QString imgPath);
     QImage * load16bitBmp565(QString file, bool bigEndian);
@@ -32,10 +33,13 @@ public:
     int getImageRole(void) { return imageRole; }
     int getIndex(void) { return indexPosition; }
     bool isFileCorrect(void) { return fileOK; }
+    void setCurrentlyDisplayed(bool enable) { currentlyDisplayed = enable; }
+    bool isCurrentlyDisplayed(void) { return currentlyDisplayed; }
 
     void setImage(QString path);
     void discardImage(void);
     bool isChanged(void);
+
 };
 
 #endif // IMAGE_HANDLER_H
