@@ -14,6 +14,7 @@
 #include <QDebug>
 
 #include "image_handler.h"
+#include "imageview.h"
 
 //! This class allows to create a resizable graphical item with border and markers for resize actions.
 /*!
@@ -89,6 +90,7 @@ private:
 
     bool isNearAt(QPointF pos, QPointF ref);
     qreal checkForLimit(qreal previous, qreal next);
+    QPointF getWrapperBottomLeft(void);
 
 protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent * event);

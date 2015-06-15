@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent) :
     scene = new imageScene(this);
     scene->setBackgroundBrush(QBrush(QColor(36, 38, 41), Qt::SolidPattern));
     view = new imageView(scene, this);
-    view->setOrthogonalRotation(true);
+    view->setOrthogonalRotation(false);
     // add border to the scene
     hSize = 320;
     vSize = 240;
@@ -21,15 +21,15 @@ MainWindow::MainWindow(QWidget *parent) :
     // here initial scale is being calclated/set
     qreal init_scale = 1.8;
 
-    view->scale(1.0, -1.0);
+    // zoom in a little, so the initial view is bigger and better to be seen
+    view->scale(init_scale, -init_scale);
+    view->setCurrentScaleFactor(1.8);
     qreal offset = 6.0; // because of borders (when windows gets too small and scrollbars are to be appeared)
     view->setSceneRect(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0); // +-offset is because of scrollbars which appear if windows is too small
     view->centerOn(hSize/2.0, vSize/2.0);
     view->setDragMode(QGraphicsView::ScrollHandDrag);
     view->setInteractive(true);
     view->setMouseTracking(true);
-    // zoom in a little, so the initial view is bigger and better to be seen
-    view->scale(init_scale, init_scale);
 
     // add border
     borderRect = scene->addRect(0.0, 0.0, hSize, vSize, QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap), QBrush(QColor(220, 220, 220)));
@@ -45,10 +45,10 @@ MainWindow::MainWindow(QWidget *parent) :
         this->setGeometry(100, 100, hSize*init_scale+150.0+ui->rolesListWidget->width(), vSize*init_scale+150.0);
 
     // TEST PURPOSES ONLY
-    /*resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
-    image_handler * i_handler =  new image_handler(QString("XXX\\lena.bmp"), 0, 0);
+    resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
+    image_handler * i_handler =  new image_handler(QString("C:\\Users\\PeterMikula\\Desktop\\DISPLAY_APP\\SD_CONTENT\\BMP\\pic_001.bmp"), 0, 0);
     r_rect->setPixmap(i_handler);
-    scene->addItem(r_rect);*/
+    scene->addItem(r_rect);
 
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
@@ -146,6 +146,23 @@ void MainWindow::updateRolesListWidget()
         ui->rolesListWidget->addItem(item);
         ++i;
     }
+
+    // update color of items, so user will clearly see which items are already connected
+    updateRolesListWidgetColor();
+}
+
+void MainWindow::updateRolesListWidgetColor()
+{
+    int index = 0;
+    QList<QListWidgetItem * > tempItemList =  ui->rolesListWidget->findItems(QString("*"), Qt::MatchWildcard);
+    for(QList<QListWidgetItem * >::iterator it = tempItemList.begin(); it<tempItemList.end(); it++)
+    {
+        index = (*it)->data(Qt::UserRole).toInt();
+        if(imageItems->at(index)->isFileCorrect())
+            (*it)->setTextColor(Qt::green); // if item is associated
+        else
+            (*it)->setTextColor(Qt::red); // if no image is associated
+    }
 }
 
 void MainWindow::imageSelectorWindow()
@@ -153,26 +170,39 @@ void MainWindow::imageSelectorWindow()
     // create dialog window for selecting and linking images to their appropriate roles
     ImageSelector im_select_window(rolesList, imageItems, importedImages, this);
     im_select_window.exec();
+
+    updateRolesListWidgetColor();
 }
 
 void MainWindow::displayNewRectItem(int row)
 {
+    Q_UNUSED(row)
+
     int index = ui->rolesListWidget->currentItem()->data(Qt::UserRole).toInt();
 
     if(!imageItems->at(index)->isCurrentlyDisplayed())
     {
         if(imageItems->at(index)->isFileCorrect())
         {
-            qreal xSize = imageItems->at(index)->width();
-            qreal ySize = imageItems->at(index)->height();
+            QSizeF size = imageItems->at(index)->getItemSize();
+            QPointF pos = imageItems->at(index)->getPosition();
 
             // note that you can access xSize or ySize from inside the
-            resizeRect * r_rect = new resizeRect(xSize, ySize, 100, 100, NULL);
+            resizeRect * r_rect = new resizeRect(pos.x(), pos.y(), size.width(), size.height(), NULL);
             // set item handler status of currently displayed boolean to true
             imageItems->at(index)->setCurrentlyDisplayed(true);
             r_rect->setPixmap(imageItems->at(index));
 
+            // check for mode, if only single item is allowed, delete others
+            if(scene->getSceneItemsMode()==SINGLE_ITEM)
+            {
+                // delete all items
+                while(!resizeRectItems->isEmpty())
+                    resizeRectItems->first()->prepareForDeletion();
+            }
+
             resizeRectItems->append(r_rect);
+
             connect(r_rect, SIGNAL(isBeingDeleted(resizeRect*)), this, SLOT(deleteResizeRectItem(resizeRect*)));
             // append to rect items vector, so we have easy access to all rect items in scene
             scene->addItem(r_rect);

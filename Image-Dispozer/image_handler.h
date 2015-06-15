@@ -19,6 +19,9 @@ private:
     bool changed;
     bool currentlyDisplayed;
 
+    QSizeF itemSize;
+    QPointF xyPosition;
+
     bool loadImage(QString imgPath);
     QImage * load16bitBmp565(QString file, bool bigEndian);
     int char2int(char * array, bool bigEndian);
@@ -35,6 +38,11 @@ public:
     bool isFileCorrect(void) { return fileOK; }
     void setCurrentlyDisplayed(bool enable) { currentlyDisplayed = enable; }
     bool isCurrentlyDisplayed(void) { return currentlyDisplayed; }
+
+    void setPosition(QPointF newPosition) { xyPosition = newPosition; }
+    void setItemSize(QSizeF newSize) { itemSize = newSize; }
+    QPointF getPosition(void) { return xyPosition; }
+    QSizeF getItemSize(void) { return itemSize; }
 
     void setImage(QString path);
     void discardImage(void);

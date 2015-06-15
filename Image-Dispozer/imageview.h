@@ -18,6 +18,7 @@ class imageView : public QGraphicsView
 private:
     double rotationSmoothness;
     bool orthogonalRotation;
+    qreal currentScaleFactor;
 
 public:
     imageView(imageScene *scene, QWidget *parent=NULL);
@@ -25,6 +26,8 @@ public:
 
     void setOrthogonalRotation(bool enable) { orthogonalRotation = enable; }
     bool getOrthogonalRotation(void) { return orthogonalRotation; }
+    void setCurrentScaleFactor(qreal scaleFactor) { currentScaleFactor = scaleFactor; }
+    qreal getCurrentScaleFactor(void) { return currentScaleFactor; }
 
 protected:
     void wheelEvent(QWheelEvent *event);

@@ -29,6 +29,8 @@ void imageView::wheelEvent(QWheelEvent* event) {
             else                { by = 1; }
 
             this->scale(by, by);
+            // saving scale factor allows better display of borders and corners when zooming
+            this->setCurrentScaleFactor(currentScaleFactor/by); // save new scale factor
 
             event->accept();
     }

@@ -45,6 +45,7 @@ private:
 
     void initializeTreeItems(void);
     void updateRolesListWidget(void);
+    void updateRolesListWidgetColor(void);
 
 public slots:
     void imageSelectorWindow(void);

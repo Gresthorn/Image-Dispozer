@@ -84,24 +84,29 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         // if item is selected, draw also bordering with resize handlers
         painter->save();
 
-        painter->setPen(QPen(QBrush(Qt::darkRed), 1.0, Qt::DotLine));
-        painter->drawRect(QRectF(topLeft, bottomRight));
+        imageView * view = static_cast<imageView * >(scene()->views().first());
+        qreal curr_scale = view->getCurrentScaleFactor();
+
+        qreal scaledCorner = cornerSquareSize*curr_scale*0.5; // * 0.5 is because for nicer display
+
+        //painter->setPen(QPen(QBrush(Qt::darkRed), 0.8*curr_scale, Qt::SolidLine));
+        //painter->drawRect(QRectF(topLeft, bottomRight));
 
         // draw small squares to the corners and in the middle of borders
-        qreal cssHalf = cornerSquareSize/2.0;
+        qreal cssHalf = scaledCorner/2.0;
 
         painter->setPen(Qt::NoPen);
         painter->setBrush(QBrush(QColor(Qt::darkGreen)));
 
-        painter->drawRect(QRectF(topLeft.x()-cssHalf, topLeft.y()-cssHalf, cornerSquareSize, cornerSquareSize)); // topLeft square
-        painter->drawRect(QRectF(topRight.x()-cssHalf, topRight.y()-cssHalf, cornerSquareSize, cornerSquareSize)); // topRight square
-        painter->drawRect(QRectF(bottomLeft.x()-cssHalf, bottomLeft.y()-cssHalf, cornerSquareSize, cornerSquareSize)); // bottomLeft square
-        painter->drawRect(QRectF(bottomRight.x()-cssHalf, bottomRight.y()-cssHalf, cornerSquareSize, cornerSquareSize)); // bottomLeft square
+        painter->drawRect(QRectF(topLeft.x()-cssHalf, topLeft.y()-cssHalf, scaledCorner, scaledCorner)); // topLeft square
+        painter->drawRect(QRectF(topRight.x()-cssHalf, topRight.y()-cssHalf, scaledCorner, scaledCorner)); // topRight square
+        painter->drawRect(QRectF(bottomLeft.x()-cssHalf, bottomLeft.y()-cssHalf, scaledCorner, scaledCorner)); // bottomLeft square
+        painter->drawRect(QRectF(bottomRight.x()-cssHalf, bottomRight.y()-cssHalf, scaledCorner, scaledCorner)); // bottomLeft square
 
-        painter->drawRect(QRectF(-cssHalf, height/2.0-cssHalf, cornerSquareSize, cornerSquareSize)); // top border
-        painter->drawRect(QRectF(width/2.0-cssHalf, -cssHalf, cornerSquareSize, cornerSquareSize)); // right border
-        painter->drawRect(QRectF(-cssHalf, -height/2.0-cssHalf, cornerSquareSize, cornerSquareSize)); // bottom border
-        painter->drawRect(QRectF(-width/2.0-cssHalf, -cssHalf, cornerSquareSize, cornerSquareSize)); // left border
+        painter->drawRect(QRectF(-cssHalf, height/2.0-cssHalf, scaledCorner, scaledCorner)); // top border
+        painter->drawRect(QRectF(width/2.0-cssHalf, -cssHalf, scaledCorner, scaledCorner)); // right border
+        painter->drawRect(QRectF(-cssHalf, -height/2.0-cssHalf, scaledCorner, scaledCorner)); // bottom border
+        painter->drawRect(QRectF(-width/2.0-cssHalf, -cssHalf, scaledCorner, scaledCorner)); // left border
 
         painter->restore();
     }
@@ -153,6 +158,39 @@ qreal resizeRect::checkForLimit(qreal previous, qreal next)
     return next;
 }
 
+QPointF resizeRect::getWrapperBottomLeft()
+{
+    // Wrapper is rectangle connecting all corners and does not matter on rotation of item.
+    QPointF x, y; // points holding x and y position
+    qreal rotAngle = rotation();
+    if(rotAngle>=0.0 && rotAngle<90.0)
+    {
+        x = mapToScene(topLeft);
+        y = mapToScene(bottomLeft);
+        return QPointF(x.x(), y.y());
+    }
+    else if(rotAngle>=90.0 && rotAngle<180.0)
+    {
+        x = mapToScene(topRight);
+        y = mapToScene(topLeft);
+        return QPointF(x.x(), y.y());
+    }
+    else if(rotAngle>=180.0 && rotAngle<270.0)
+    {
+        x = mapToScene(bottomRight);
+        y = mapToScene(topRight);
+        return QPointF(x.x(), y.y());
+    }
+    else
+    {
+        x = mapToScene(bottomLeft);
+        y = mapToScene(bottomRight);
+        return QPointF(x.x(), y.y());
+    }
+
+    return QPointF(xPos, yPos); // returns at least central point
+}
+
 void resizeRect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     QPointF ePos = event->pos();
@@ -177,7 +215,6 @@ void resizeRect::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
 
 void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 {
-
     if(resize==NONE)
     {
         //prepareGeometryChange();
@@ -327,6 +364,10 @@ void resizeRect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     QPointF curr_point = mapToScene(0.0, 0.0);
     xPos = curr_point.x();
     yPos = curr_point.y();
+
+    // save new data to handler, so they can be loaded later if graphics item is deleted and revealed
+    image->setPosition(QPointF(xPos, yPos));
+    image->setItemSize(QSizeF(width, height));
 
     QGraphicsItem::mouseReleaseEvent(event);
     this->scene()->update();
