@@ -31,6 +31,8 @@ MainWindow::MainWindow(QWidget *parent) :
     view->setInteractive(true);
     view->setMouseTracking(true);
 
+    connect(view, SIGNAL(updateDisplayedItemsVector(resizeRect*)), this, SLOT(updateDisplayedItemsVector(resizeRect*)));
+
     // add border
     borderRect = scene->addRect(0.0, 0.0, hSize, vSize, QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap), QBrush(QColor(220, 220, 220)));
 
@@ -52,6 +54,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
+    connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
 }
 
 MainWindow::~MainWindow()
@@ -128,8 +131,7 @@ void MainWindow::initializeTreeItems()
 
     updateRolesListWidget();
 
-    // create list for graphical items
-    resizeRectItems = new QList<resizeRect * >;
+    displayedItems = new QList<resizeRect * >;
 }
 
 void MainWindow::updateRolesListWidget()
@@ -159,7 +161,7 @@ void MainWindow::updateRolesListWidgetColor()
     {
         index = (*it)->data(Qt::UserRole).toInt();
         if(imageItems->at(index)->isFileCorrect())
-            (*it)->setTextColor(Qt::green); // if item is associated
+            (*it)->setTextColor(Qt::darkGreen); // if item is associated
         else
             (*it)->setTextColor(Qt::red); // if no image is associated
     }
@@ -172,6 +174,8 @@ void MainWindow::imageSelectorWindow()
     im_select_window.exec();
 
     updateRolesListWidgetColor();
+
+    this->centralWidget()->setFocusPolicy(Qt::StrongFocus);
 }
 
 void MainWindow::displayNewRectItem(int row)
@@ -193,35 +197,28 @@ void MainWindow::displayNewRectItem(int row)
             imageItems->at(index)->setCurrentlyDisplayed(true);
             r_rect->setPixmap(imageItems->at(index));
 
-            // check for mode, if only single item is allowed, delete others
-            if(scene->getSceneItemsMode()==SINGLE_ITEM)
-            {
-                // delete all items
-                while(!resizeRectItems->isEmpty())
-                    resizeRectItems->first()->prepareForDeletion();
-            }
+            displayedItems->append(r_rect);
 
-            resizeRectItems->append(r_rect);
-
-            connect(r_rect, SIGNAL(isBeingDeleted(resizeRect*)), this, SLOT(deleteResizeRectItem(resizeRect*)));
             // append to rect items vector, so we have easy access to all rect items in scene
             scene->addItem(r_rect);
-
         }
         else ui->statusBar->showMessage(tr("This element has not been associated yet"));
     }
     else ui->statusBar->showMessage(tr("This element is already displayed"));
 }
 
-void MainWindow::deleteResizeRectItem(resizeRect *item)
+void MainWindow::updateDisplayedItemsVector(resizeRect * item)
 {
-    // find item in our list of displayed item and remove it from the list
-    for(int i=0; i<resizeRectItems->count(); i++)
+    // do not delete object itself, since it is done automatically by view
+    for(int i=0; i<displayedItems->count(); i++)
+        if(item==displayedItems->at(i)) displayedItems->removeAt(i);
+}
+
+void MainWindow::removeAllDisplayedItems()
+{
+    while(!displayedItems->isEmpty())
     {
-        if(resizeRectItems->at(i)==item)
-        {
-            resizeRectItems->removeAt(i);
-            break; // since we already deleted the item, there is no need to continue in loop
-        }
+        displayedItems->first()->deleteLater();
+        displayedItems->removeFirst();
     }
 }

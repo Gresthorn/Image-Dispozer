@@ -12,6 +12,7 @@ class image_handler : public QPixmap
 
 private:
     QString imagePath;
+    QString tempImagePath;
     int imageRole;
     int indexPosition;
 
@@ -43,6 +44,10 @@ public:
     void setItemSize(QSizeF newSize) { itemSize = newSize; }
     QPointF getPosition(void) { return xyPosition; }
     QSizeF getItemSize(void) { return itemSize; }
+
+    QString getTempImagePath(void) { return tempImagePath; }
+    void setTempImagePath(QString path) { tempImagePath = path; }
+    void clearTempImagePath(void) { tempImagePath.clear(); }
 
     void setImage(QString path);
     void discardImage(void);

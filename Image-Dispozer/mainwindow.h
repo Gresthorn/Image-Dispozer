@@ -9,6 +9,8 @@
 #include <QDebug>
 #include <QGraphicsRectItem>
 #include <QVBoxLayout>
+#include <QKeyEvent>
+#include <QSet>
 
 #include "imageselector.h"
 #include "image_handler.h"
@@ -32,7 +34,7 @@ private:
     Ui::MainWindow *ui;
 
     QList<image_handler * > * imageItems;
-    QList<resizeRect * > * resizeRectItems;
+    QList<resizeRect * > * displayedItems;
     QStringList * importedImages;
     QVector<roleString * > * rolesList;
 
@@ -48,9 +50,10 @@ private:
     void updateRolesListWidgetColor(void);
 
 public slots:
+    void removeAllDisplayedItems(void);
     void imageSelectorWindow(void);
     void displayNewRectItem(int row);
-    void deleteResizeRectItem(resizeRect * item);
+    void updateDisplayedItemsVector(resizeRect * item);
 };
 
 #endif // MAINWINDOW_H

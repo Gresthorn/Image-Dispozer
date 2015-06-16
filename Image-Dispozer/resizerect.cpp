@@ -37,6 +37,7 @@ resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent
 resizeRect::~resizeRect()
 {
     // DO NOT DELETE 'image' SINCE THE HANDLER IS USED ALSO OUTSIDE THIS OBJECT !!!!
+    image->setCurrentlyDisplayed(false);
 }
 
 void resizeRect::incrementRotation(qreal angle)
@@ -65,13 +66,6 @@ void resizeRect::switchFlipY()
 void resizeRect::setPixmap(image_handler *handler)
 {
     image = handler;
-}
-
-void resizeRect::prepareForDeletion()
-{
-    image->setCurrentlyDisplayed(false);
-    emit isBeingDeleted(this);
-    this->deleteLater();
 }
 
 void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

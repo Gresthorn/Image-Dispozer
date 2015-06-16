@@ -8,8 +8,8 @@
 #include <QList>
 #include <QGraphicsItem>
 
-#include "imagescene.h"
 #include "resizerect.h"
+#include "imagescene.h"
 
 class imageView : public QGraphicsView
 {
@@ -21,7 +21,8 @@ private:
     qreal currentScaleFactor;
 
 public:
-    imageView(imageScene *scene, QWidget *parent=NULL);
+    imageView(imageScene * scene, QWidget * parent = NULL);
+
     ~imageView();
 
     void setOrthogonalRotation(bool enable) { orthogonalRotation = enable; }
@@ -35,6 +36,9 @@ protected:
 
 public slots:
     void showContextMenu(const QPoint & position);
+
+signals:
+    void updateDisplayedItemsVector(class resizeRect * );
 };
 
 #endif // IMAGEVIEW_H

@@ -1,6 +1,6 @@
 #include "imageview.h"
 
-imageView::imageView(imageScene *scene, QWidget *parent)
+imageView::imageView(imageScene *scene, QWidget * parent)
     : QGraphicsView::QGraphicsView(scene, parent)
 {
     rotationSmoothness = 24.0;
@@ -118,18 +118,16 @@ void imageView::showContextMenu(const QPoint &position)
         if(selected==hideSelected)
         {
             // now hide selected items
-            for(QList<QGraphicsItem * >::iterator it=scene()->selectedItems().begin(); it<scene()->selectedItems().end(); it++)
+            for(int i=0; i<scene()->selectedItems().count(); i++)
             {
 
                 // Retype into resizeRect, since that only we are interested in.
                 // If more kind of objects are added to the scene and needs to be
                 // considered as well, use dynamic_cast.
-                resizeRect * rect = dynamic_cast<resizeRect * >(*it);
-                if(rect==NULL) continue;
-                // Prepare for deletion. Note that after calling this function, object
-                // will automatically emit required signals and will be deleted later
-                // automatically. Do not delete object manually.
-                rect->prepareForDeletion();
+                resizeRect * item = qgraphicsitem_cast<resizeRect * >(scene()->selectedItems().at(i));
+                if(item!=NULL) item->deleteLater();
+
+                emit updateDisplayedItemsVector(item);
             }
         }
     }

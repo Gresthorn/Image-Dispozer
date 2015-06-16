@@ -40,6 +40,7 @@
 class resizeRect :  public QObject, public QGraphicsItem
 {
     Q_OBJECT
+    Q_INTERFACES(QGraphicsItem)
 
 private:
 
@@ -91,6 +92,9 @@ private:
     bool isNearAt(QPointF pos, QPointF ref);
     qreal checkForLimit(qreal previous, qreal next);
     QPointF getWrapperBottomLeft(void);
+
+    enum { RESIZE_RECT_ITEM = QVariant::UserType+100 };
+    int type() const { return RESIZE_RECT_ITEM; }
 
 protected:
     void hoverMoveEvent(QGraphicsSceneHoverEvent * event);

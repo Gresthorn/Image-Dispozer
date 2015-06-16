@@ -3,6 +3,7 @@
 
 #include <QGraphicsScene>
 
+
 enum sceneItemsMode
 {
     SINGLE_ITEM,
