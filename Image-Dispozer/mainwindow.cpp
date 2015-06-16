@@ -3,7 +3,8 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    item_opaque_animation_delay(500), border_resize_animation_delay(500)
 {
     ui->setupUi(this);
 
@@ -12,19 +13,22 @@ MainWindow::MainWindow(QWidget *parent) :
     // create new scene and view
     scene = new imageScene(this);
     scene->setBackgroundBrush(QBrush(QColor(36, 38, 41), Qt::SolidPattern));
+    image_mode = SINGLE;
     view = new imageView(scene, this);
     view->setOrthogonalRotation(false);
     // add border to the scene
+    ratio_mode = LANDSCAPE;
+    resize_on_ratio_change = reposition_on_ratio_change = true;
     hSize = 320;
     vSize = 240;
 
-    // here initial scale is being calclated/set
+    // here initial scale is being calculated/set
     qreal init_scale = 1.8;
 
     // zoom in a little, so the initial view is bigger and better to be seen
     view->scale(init_scale, -init_scale);
     view->setCurrentScaleFactor(1.8);
-    qreal offset = 6.0; // because of borders (when windows gets too small and scrollbars are to be appeared)
+    offset = 6.0; // because of borders (when windows gets too small and scrollbars are to be appeared)
     view->setSceneRect(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0); // +-offset is because of scrollbars which appear if windows is too small
     view->centerOn(hSize/2.0, vSize/2.0);
     view->setDragMode(QGraphicsView::ScrollHandDrag);
@@ -34,7 +38,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(view, SIGNAL(updateDisplayedItemsVector(resizeRect*)), this, SLOT(updateDisplayedItemsVector(resizeRect*)));
 
     // add border
-    borderRect = scene->addRect(0.0, 0.0, hSize, vSize, QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap), QBrush(QColor(220, 220, 220)));
+    borderRectangle = new borderRect(0.0, 0.0, hSize, vSize, NULL);
+    borderRectangle->setPen(QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap));
+    borderRectangle->setBrush(QBrush(QColor(220, 220, 220)));
+    scene->addItem(borderRectangle);
 
     // display view in mainWindow
     QVBoxLayout * sceneWidgetLayout = new QVBoxLayout;
@@ -46,15 +53,21 @@ MainWindow::MainWindow(QWidget *parent) :
     if(hSize*init_scale*0.6<1336 && vSize*init_scale*0.6<768)
         this->setGeometry(100, 100, hSize*init_scale+150.0+ui->rolesListWidget->width(), vSize*init_scale+150.0);
 
+
+    // set wrapper of quick buttons with no margins
+    ui->quickButtonsWrapperWidget->layout()->setContentsMargins(0, 0, 0, 0);
+
     // TEST PURPOSES ONLY
-    resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
+    /*resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
     image_handler * i_handler =  new image_handler(QString("C:\\Users\\PeterMikula\\Desktop\\DISPLAY_APP\\SD_CONTENT\\BMP\\pic_001.bmp"), 0, 0);
     r_rect->setPixmap(i_handler);
-    scene->addItem(r_rect);
+    scene->addItem(r_rect);*/
 
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
+    connect(ui->switchPortraitLandscapeButton, SIGNAL(clicked()), this, SLOT(togglePortraitLandscapeMode()));
+    connect(ui->switchSingleMultipleImagesButton, SIGNAL(clicked()), this, SLOT(toggleSingleMultipleImageMode()));
 }
 
 MainWindow::~MainWindow()
@@ -127,6 +140,7 @@ void MainWindow::initializeTreeItems()
     for(int i = 0; i<rolesList->size(); i++)
     {
         imageItems->append(new image_handler(QString(), rolesList->at(i)->getRoleCode(), i));
+        imageItems->last()->setPosition(QPointF(100.0, 100.0));
     }
 
     updateRolesListWidget();
@@ -197,6 +211,9 @@ void MainWindow::displayNewRectItem(int row)
             imageItems->at(index)->setCurrentlyDisplayed(true);
             r_rect->setPixmap(imageItems->at(index));
 
+            // check for mode, if SINGLE mode is enabled, we will clear other images in scene before adding new
+            if(image_mode==SINGLE) removeAllDisplayedItems();
+
             displayedItems->append(r_rect);
 
             // append to rect items vector, so we have easy access to all rect items in scene
@@ -212,6 +229,118 @@ void MainWindow::updateDisplayedItemsVector(resizeRect * item)
     // do not delete object itself, since it is done automatically by view
     for(int i=0; i<displayedItems->count(); i++)
         if(item==displayedItems->at(i)) displayedItems->removeAt(i);
+}
+
+void MainWindow::togglePortraitLandscapeMode()
+{
+    if(ratio_mode==LANDSCAPE)
+    {
+        ratio_mode = PORTRAIT;
+        ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/landscape-icon.png"));
+    }
+    else if(ratio_mode==PORTRAIT)
+    {
+        ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
+        ratio_mode = LANDSCAPE;
+    }
+
+    qreal temp = hSize;
+    hSize = vSize;
+    vSize = temp;
+
+    hideDisplayedItems();
+    QThread::msleep(item_opaque_animation_delay);
+
+    // resize the border rect
+    QPropertyAnimation * border_animation = new QPropertyAnimation(borderRectangle, "size");
+    border_animation->setDuration(border_resize_animation_delay);
+    border_animation->setStartValue(borderRectangle->getSize());
+    border_animation->setEndValue(QSizeF(hSize, vSize));
+
+    // animate resizing of scene rect, so the rectangle will not visualy just jump to another position like
+    QPropertyAnimation * scene_rect_animation = new QPropertyAnimation(view, "sceneRect");
+    scene_rect_animation->setDuration(border_resize_animation_delay);
+    scene_rect_animation->setStartValue(view->sceneRect());
+    scene_rect_animation->setEndValue(QRectF(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0));
+
+    scene_rect_animation->start(QAbstractAnimation::DeleteWhenStopped);
+    border_animation->start(QAbstractAnimation::DeleteWhenStopped);
+
+    connect(border_animation, SIGNAL(finished()), this, SLOT(revealDisplayedItems()));
+
+    if(resize_on_ratio_change || reposition_on_ratio_change)
+    {
+        qreal ratio = hSize/vSize;
+        for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+        {
+            // udate positions of objects to fit in new dimensions
+            if(reposition_on_ratio_change)
+            {
+                QPointF previous = (*it)->getPosition();
+                (*it)->setPosition(QPointF(previous.x()*ratio, previous.y()/ratio));
+            }
+
+            // update sizes of objects if this option is enabled
+            if(resize_on_ratio_change)
+            {
+                QSizeF previous = (*it)->getItemSize();
+                (*it)->setItemSize(QSizeF(previous.width()*ratio, previous.height()/ratio));
+            }
+        }
+    }
+
+    // update displayed items (it there are any)
+    updateVisibleItems();
+
+    scene->update();
+}
+
+void MainWindow::toggleSingleMultipleImageMode()
+{
+    if(image_mode==SINGLE)
+    {
+        image_mode = MULTIPLE;
+        ui->switchSingleMultipleImagesButton->setIcon(QIcon(":/quick_access/icons/single-image-icon.png"));
+    }
+    else if(image_mode==MULTIPLE)
+    {
+        ui->switchSingleMultipleImagesButton->setIcon(QIcon(":/quick_access/icons/multiple-images-icon.png"));
+        image_mode = SINGLE;
+
+        // if going to single mode, we need to delete all objects in scene currently visible
+        removeAllDisplayedItems();
+    }
+}
+
+void MainWindow::hideDisplayedItems()
+{
+    for(int i=0; i<displayedItems->count(); i++)
+    {
+        QPropertyAnimation * item_animation = new QPropertyAnimation(displayedItems->at(i), "opaque");
+        item_animation->setDuration(item_opaque_animation_delay);
+        item_animation->setStartValue(1.0);
+        item_animation->setEndValue(0.0);
+        item_animation->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+}
+
+void MainWindow::revealDisplayedItems()
+{
+    for(int i=0; i<displayedItems->count(); i++)
+    {
+        QPropertyAnimation * item_animation = new QPropertyAnimation(displayedItems->at(i), "opaque");
+        item_animation->setDuration(item_opaque_animation_delay);
+        item_animation->setStartValue(0.0);
+        item_animation->setEndValue(1.0);
+        item_animation->start(QAbstractAnimation::DeleteWhenStopped);
+    }
+}
+
+void MainWindow::updateVisibleItems()
+{
+    // if data in image_handlers is changed, we need to call update function of each visible item, to immediately apply changes
+    for(int i=0; i<displayedItems->count(); i++)
+        displayedItems->at(i)->updateData();
 }
 
 void MainWindow::removeAllDisplayedItems()

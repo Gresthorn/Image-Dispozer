@@ -32,7 +32,6 @@ private:
     Ui::ImageSelector *ui;
     QVector<roleString * > * rolesList;
     QList<image_handler * > * imageItems;
-    QList<image_handler * > * originalImageItems;
     QStringList * importedImages;
 
     image_handler * preview;

@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/quick_access">
+        <file>icons/landscape-icon.png</file>
+        <file>icons/portrait-icon.png</file>
+        <file>icons/sweep-icon.png</file>
+        <file>icons/multiple-images-icon.png</file>
+        <file>icons/single-image-icon.png</file>
+    </qresource>
+</RCC>

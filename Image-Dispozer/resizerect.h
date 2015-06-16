@@ -42,6 +42,8 @@ class resizeRect :  public QObject, public QGraphicsItem
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 
+    Q_PROPERTY(qreal opaque READ opacity WRITE setNewOpacity)
+
 private:
 
     //! Enumeration type for identifying resize method currently in use.
@@ -76,7 +78,6 @@ private:
      * \sa resizeRect::resizeType
      */
     resizeType resize;
-
 
     int constantZIndex;
 
@@ -115,6 +116,10 @@ public:
 
     void setPixmap(image_handler *handler);
     void prepareForDeletion(void);
+
+    void setNewOpacity(qreal opaque) { setOpacity(opaque); }
+
+    void updateData(void);
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;

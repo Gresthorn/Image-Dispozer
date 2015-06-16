@@ -68,6 +68,27 @@ void resizeRect::setPixmap(image_handler *handler)
     image = handler;
 }
 
+void resizeRect::updateData()
+{
+    QSizeF sz = image->getItemSize();
+    QPointF pt = image->getPosition();
+
+    // firstly set position
+    this->setPos(pt);
+    xPos = pt.x();
+    yPos = pt.y();
+
+    // now update width and height
+    width = sz.width();
+    height = sz.height();
+
+    // now update corners coordinates
+    topLeft.setX(-width/2.0); topLeft.setY(height/2.0);
+    topRight.setX(width/2.0); topRight.setY(height/2.0);
+    bottomRight.setX(width/2.0); bottomRight.setY(-height/2.0);
+    bottomLeft.setX(-width/2.0); bottomLeft.setY(-height/2.0);
+}
+
 void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
     Q_UNUSED(option)
@@ -107,7 +128,18 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     painter->save();
     painter->scale(flipX*1.0, flipY*1.0);
-    if(image!=NULL) painter->drawPixmap(topLeft.x(), -topLeft.y(), width, height, *image);
+    if(image!=NULL)
+    {
+        if(image->isFileCorrect())
+            painter->drawPixmap(topLeft.x(), -topLeft.y(), width, height, *image);
+        else
+        {
+            // if missing pixmap, draw rectangle with cross inside
+            painter->drawRect(QRectF(topLeft, bottomRight));
+            painter->drawLine(topLeft, bottomRight);
+            painter->drawLine(topRight, bottomLeft);
+        }
+    }
     else
     {
         // if missing pixmap, draw rectangle with cross inside

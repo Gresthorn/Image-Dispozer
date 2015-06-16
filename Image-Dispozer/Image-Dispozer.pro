@@ -19,7 +19,8 @@ SOURCES += main.cpp\
     rolestring.cpp \
     imagescene.cpp \
     imageview.cpp \
-    resizerect.cpp
+    resizerect.cpp \
+    borderrect.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -27,7 +28,11 @@ HEADERS  += mainwindow.h \
     rolestring.h \
     imagescene.h \
     imageview.h \
-    resizerect.h
+    resizerect.h \
+    borderrect.h
 
 FORMS    += mainwindow.ui \
     imageselector.ui
+
+RESOURCES += \
+    icons.qrc

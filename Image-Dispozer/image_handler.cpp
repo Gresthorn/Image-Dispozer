@@ -5,6 +5,7 @@ image_handler::image_handler(QString path, int roleCode, int index)
 {
     indexPosition = index;
 
+    tempImagePath.clear();
     imagePath.clear();
     imagePath.append(path);
 
@@ -14,7 +15,7 @@ image_handler::image_handler(QString path, int roleCode, int index)
         fileOK = loadImage(imagePath);
     else fileOK = false;
 
-    currentlyDisplayed = changed = false;
+    currentlyDisplayed = false;
 
     // only implicit values
     xyPosition.setX(0.0); xyPosition.setY(0.0);
@@ -29,6 +30,7 @@ image_handler::image_handler(QPixmap img, QString path, int roleCode, int index,
 
     indexPosition = index;
 
+    tempImagePath.clear();
     imagePath.clear();
     imagePath.append(path);
 
@@ -54,14 +56,16 @@ image_handler &image_handler::operator=(image_handler &image)
     return *new_handler;
 }
 
-void image_handler::setImage(QString path)
+int image_handler::setImage(QString path)
 {
     if(loadImage(path))
     {
         // if load of image was successful, new image can be set
         imagePath.clear();
         imagePath.append(path);
-        fileOK = changed = true;
+        fileOK = true;
+
+        return 1;
     }
     else
     {
@@ -71,24 +75,20 @@ void image_handler::setImage(QString path)
         fileOK = loadImage(imagePath);
         if(!fileOK)
         {
-            changed = true; // since we could not reveal old image
             imagePath.clear();
+
+            return -1;
         }
+
+        return 0;
     }
 }
 
 void image_handler::discardImage()
 {
     // set default values
-    changed = true;
     fileOK = false;
     imagePath.clear();
-}
-
-bool image_handler::isChanged()
-{
-    // if the content of the object was modified, the value of variable should be true
-    return changed;
 }
 
 bool image_handler::loadImage(QString imgPath)

@@ -17,7 +17,6 @@ private:
     int indexPosition;
 
     bool fileOK;
-    bool changed;
     bool currentlyDisplayed;
 
     QSizeF itemSize;
@@ -49,9 +48,8 @@ public:
     void setTempImagePath(QString path) { tempImagePath = path; }
     void clearTempImagePath(void) { tempImagePath.clear(); }
 
-    void setImage(QString path);
+    int setImage(QString path);
     void discardImage(void);
-    bool isChanged(void);
 
 };
 

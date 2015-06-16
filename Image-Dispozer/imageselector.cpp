@@ -15,15 +15,7 @@ ImageSelector::ImageSelector(QVector<roleString * > * roles_list, QList<image_ha
     importedImages = imported_images; // we can modify the original vector since we want to store all imported image paths
 
     // create copy of  our images so we will not modify our previous vector in case the user clicks cancel button
-    imageItems = new QList<image_handler * >;
-    originalImageItems = image_items;
-
-    for(QList<image_handler * >::iterator it=originalImageItems->begin(); it!=originalImageItems->end(); it++)
-    {
-        image_handler * new_image = new image_handler((*it)->copy(), (*it)->getImagePath(),
-                                                      (*it)->getImageRole(), (*it)->getIndex(), (*it)->isFileCorrect());
-        imageItems->append(new_image);
-    }
+    imageItems = image_items;
 
     QTreeWidgetItem * item;
     // go through all linked/unlinked items in vector and initialize tree widget items
@@ -138,7 +130,8 @@ void ImageSelector::linkSelectedItem()
             int index = ui->rolesTree->selectedItems().first()->data(1, Qt::UserRole).toInt();
 
             // set new image
-            imageItems->at(index)->setImage(path);
+            // imageItems->at(index)->setImage(path); // OLD CODE
+            imageItems->at(index)->setTempImagePath(path);
 
             // if incremental switching is allowed, we need to remember the index of selected item
             int curr_position_role = 0;
@@ -198,9 +191,9 @@ void ImageSelector::unlinkSelectedItems()
 
             // discard initial image, so object is empty again
             int index = item->data(1, Qt::UserRole).toInt();
-            // get image path before discarding it
-            QString img_path = imageItems->at(index)->getImagePath();
-            imageItems->at(index)->discardImage();
+            QString img_path = imageItems->at(index)->getTempImagePath();
+            imageItems->at(index)->clearTempImagePath();
+            // imageItems->at(index)->discardImage(); // OLD CODE
 
             // if incremental switching is allowed, we need to remember the index of selected item
             int curr_position_role = 0;
@@ -356,22 +349,21 @@ void ImageSelector::imageRoleWasClicked()
 
         int index = ui->rolesTree->selectedItems().first()->data(1, Qt::UserRole).toInt();
 
-        // if image is not correctly loaded, it may be usefull to inform the user about error
-        if(!imageItems->at(index)->isFileCorrect())
-        {
-            ui->previewLabel->setText(tr("loading error"));
-            return;
-        }
-
         if(preview!=NULL)
         {
             delete preview;
             preview = NULL;
         }
 
-        QString path = imageItems->at(index)->getImagePath();
+        QString path = imageItems->at(index)->getTempImagePath();
+        if(path.isEmpty())
+        {
+            ui->previewLabel->setText(tr("no preview"));
+            return;
+        }
 
         preview = new image_handler(path, -1, -1); // preview can be displayed also without role code or index
+        // if image is not correctly loaded, it may be usefull to inform the user about error
         if(preview->isFileCorrect())
         {
             ui->previewLabel->setPixmap(*preview);
@@ -390,26 +382,37 @@ void ImageSelector::imageRoleWasClicked()
 
 void ImageSelector::cancelButtonClicked()
 {
-    // if user clicked cancel button, we must discard created copy of pixmaps
+    // if user clicked cancel button, we must discard temporary paths
     for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
-        delete (*it);
-
-    // delete list itself
-    delete imageItems;
+        (*it)->clearTempImagePath();
 }
 
 void ImageSelector::acceptButtonClicked()
 {
-    // if user clicked accept button, we must replace data in previous vector with new data
-    while(!originalImageItems->isEmpty())
-    {
-        delete originalImageItems->first();
-        originalImageItems->removeFirst();
-    }
+    QString result;
 
     // append new items to original list
     for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
-        originalImageItems->append((*it));
+    {
+        // check if there is some image to be loaded
+        if((*it)->getTempImagePath().isEmpty())
+        {
+            (*it)->discardImage(); // delete image, if there is some
+            continue;
+        }
+
+        int loading_result = (*it)->setImage((*it)->getTempImagePath());
+        if(loading_result!=1) // an error occured when loading image
+        {
+            result.append(QString("The file: \"%1\" could not be loaded").arg((*it)->getTempImagePath()));
+
+            if(loading_result==0)
+                result.append(" but the old image was <b>successfuly</b> refreshed.");
+            else result.append(" but the old image <b>could not be</b> refreshed.");
+
+            result.append("\n");
+        }
+    }
 
     // clear importedImages vector, we will fill it with new values
     importedImages->clear();
@@ -419,4 +422,6 @@ void ImageSelector::acceptButtonClicked()
         importedImages->append(temp->data(Qt::UserRole).toString());
     }
 
+    // if there is some error message to be displayed
+    if(!result.isEmpty()) QMessageBox::warning(this, tr("Some images could not be loaded"), result, QMessageBox::Ok);
 }
