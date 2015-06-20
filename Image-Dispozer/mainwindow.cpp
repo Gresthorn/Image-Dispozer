@@ -4,9 +4,12 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    item_opaque_animation_delay(500), border_resize_animation_delay(500)
+    item_opaque_animation_delay(500), border_resize_animation_delay(500), border_pen_width(4.0)
 {
     ui->setupUi(this);
+
+    // let tempData to be NULL at startup until first save request by user
+    tempItemData = lastItemDataUpdate = NULL;
 
     initializeTreeItems();
 
@@ -36,10 +39,12 @@ MainWindow::MainWindow(QWidget *parent) :
     view->setMouseTracking(true);
 
     connect(view, SIGNAL(updateDisplayedItemsVector(resizeRect*)), this, SLOT(updateDisplayedItemsVector(resizeRect*)));
+    connect(view, SIGNAL(saveSelectedItemData(image_handler*)), this, SLOT(saveSelectedItemData(image_handler*)));
+    connect(view, SIGNAL(currentSingleItemSelection(image_handler*)), this, SLOT(updateElementInfo(image_handler*)));
 
     // add border
-    borderRectangle = new borderRect(0.0, 0.0, hSize, vSize, NULL);
-    borderRectangle->setPen(QPen(QBrush(QColor(80, 80, 80)), 4.0, Qt::SolidLine, Qt::SquareCap));
+    borderRectangle = new borderRect(0.0-border_pen_width/2.0, 0.0-border_pen_width/2.0, hSize+border_pen_width, vSize+border_pen_width, NULL);
+    borderRectangle->setPen(QPen(QBrush(QColor(80, 80, 80)), border_pen_width, Qt::SolidLine, Qt::SquareCap));
     borderRectangle->setBrush(QBrush(QColor(220, 220, 220)));
     scene->addItem(borderRectangle);
 
@@ -63,11 +68,17 @@ MainWindow::MainWindow(QWidget *parent) :
     r_rect->setPixmap(i_handler);
     scene->addItem(r_rect);*/
 
+    temp_ini_file_path.clear();
+
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
+    connect(ui->actionOpen_profile, SIGNAL(triggered()), this, SLOT(initFileLoaderWindow()));
+    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveProfileSlot()));
+    connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsProfileSlot()));
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
     connect(ui->switchPortraitLandscapeButton, SIGNAL(clicked()), this, SLOT(togglePortraitLandscapeMode()));
     connect(ui->switchSingleMultipleImagesButton, SIGNAL(clicked()), this, SLOT(toggleSingleMultipleImageMode()));
+    connect(ui->applySavedDataButton, SIGNAL(clicked()), this, SLOT(applySavedDataSlot()));
 }
 
 MainWindow::~MainWindow()
@@ -204,9 +215,11 @@ void MainWindow::displayNewRectItem(int row)
         {
             QSizeF size = imageItems->at(index)->getItemSize();
             QPointF pos = imageItems->at(index)->getPosition();
+            qreal rot   = imageItems->at(index)->getItemRotation();
 
             // note that you can access xSize or ySize from inside the
             resizeRect * r_rect = new resizeRect(pos.x(), pos.y(), size.width(), size.height(), NULL);
+            r_rect->setRotation(rot);
             // set item handler status of currently displayed boolean to true
             imageItems->at(index)->setCurrentlyDisplayed(true);
             r_rect->setPixmap(imageItems->at(index));
@@ -231,16 +244,18 @@ void MainWindow::updateDisplayedItemsVector(resizeRect * item)
         if(item==displayedItems->at(i)) displayedItems->removeAt(i);
 }
 
-void MainWindow::togglePortraitLandscapeMode()
+void MainWindow::togglePortraitLandscapeMode(bool just_update)
 {
     if(ratio_mode==LANDSCAPE)
     {
-        ratio_mode = PORTRAIT;
+        // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
+        if(!just_update) ratio_mode = PORTRAIT;
         ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/landscape-icon.png"));
     }
     else if(ratio_mode==PORTRAIT)
     {
-        ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
+        // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
+        if(!just_update) ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
         ratio_mode = LANDSCAPE;
     }
 
@@ -249,23 +264,24 @@ void MainWindow::togglePortraitLandscapeMode()
     vSize = temp;
 
     hideDisplayedItems();
-    QThread::msleep(item_opaque_animation_delay);
+    //QThread::msleep(item_opaque_animation_delay);
 
     // resize the border rect
     QPropertyAnimation * border_animation = new QPropertyAnimation(borderRectangle, "size");
     border_animation->setDuration(border_resize_animation_delay);
     border_animation->setStartValue(borderRectangle->getSize());
-    border_animation->setEndValue(QSizeF(hSize, vSize));
+    border_animation->setEndValue(QSizeF(hSize+border_pen_width, vSize+border_pen_width));
 
     // animate resizing of scene rect, so the rectangle will not visualy just jump to another position like
     QPropertyAnimation * scene_rect_animation = new QPropertyAnimation(view, "sceneRect");
     scene_rect_animation->setDuration(border_resize_animation_delay);
     scene_rect_animation->setStartValue(view->sceneRect());
-    scene_rect_animation->setEndValue(QRectF(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0));
+    scene_rect_animation->setEndValue(QRectF(-offset, -offset, hSize+border_pen_width+offset*2.0, vSize+border_pen_width+offset*2.0));
 
     scene_rect_animation->start(QAbstractAnimation::DeleteWhenStopped);
     border_animation->start(QAbstractAnimation::DeleteWhenStopped);
 
+    // after animation is finished, show previous items again
     connect(border_animation, SIGNAL(finished()), this, SLOT(revealDisplayedItems()));
 
     if(resize_on_ratio_change || reposition_on_ratio_change)
@@ -295,21 +311,50 @@ void MainWindow::togglePortraitLandscapeMode()
     scene->update();
 }
 
-void MainWindow::toggleSingleMultipleImageMode()
+void MainWindow::toggleSingleMultipleImageMode(bool just_update)
 {
     if(image_mode==SINGLE)
     {
-        image_mode = MULTIPLE;
+        // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
+        if(!just_update) image_mode = MULTIPLE;
         ui->switchSingleMultipleImagesButton->setIcon(QIcon(":/quick_access/icons/single-image-icon.png"));
     }
     else if(image_mode==MULTIPLE)
     {
         ui->switchSingleMultipleImagesButton->setIcon(QIcon(":/quick_access/icons/multiple-images-icon.png"));
-        image_mode = SINGLE;
+        // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
+        if(!just_update) image_mode = SINGLE;
 
         // if going to single mode, we need to delete all objects in scene currently visible
         removeAllDisplayedItems();
     }
+}
+
+void MainWindow::saveSelectedItemData(image_handler *data)
+{
+    if(tempItemData==NULL) tempItemData = new image_handler();
+
+    tempItemData->setPosition(data->getPosition());
+    tempItemData->setItemSize(data->getItemSize());
+    tempItemData->setItemRotation(data->getItemRotation());
+}
+
+void MainWindow::applySavedDataSlot()
+{
+    if(!ui->rolesListWidget->selectedItems().isEmpty() && tempItemData!=NULL)
+    {
+        // apply saved data on all selected items
+        Q_FOREACH(QListWidgetItem * item, ui->rolesListWidget->selectedItems())
+        {
+            int index = item->data(Qt::UserRole).toInt(); // data specifies index of image handler in its list
+            // update data of item
+            imageItems->at(index)->setPosition(tempItemData->getPosition());
+            imageItems->at(index)->setItemSize(tempItemData->getItemSize());
+            imageItems->at(index)->setItemRotation(tempItemData->getItemRotation());
+        }
+    }
+
+    view->viewport()->update();
 }
 
 void MainWindow::hideDisplayedItems()
@@ -336,12 +381,231 @@ void MainWindow::revealDisplayedItems()
     }
 }
 
+void MainWindow::updateElementInfo(image_handler *item)
+{
+    // if item contains some pointer, we will extract data
+    if(item!=NULL)
+    {
+        QPointF pos = item->getPosition();
+        QPointF lb = item->getLBCorner();
+        QSizeF siz = item->getItemSize();
+        qreal rotation = item->getItemRotation();
+        int index = item->getIndex(); // we suppose here, that role index is the same as its role index
+
+        ui->nameDataLabel->setText(*rolesList->at(index));
+
+        // if using float numbers format, use additional parameters for arg(xxx, 5, 'f', 2, '0')
+
+        ui->positionDataLabel->setText(QString("[%1, %2]").arg((int)(pos.x())).arg((int)(pos.y())));
+        ui->lbDataLabel->setText(QString("[%1, %2]").arg((int)(lb.x())).arg((int)(lb.y())));
+        ui->rotationDataLabel->setText(QString("%1°").arg(rotation));
+        ui->sizeDataLabel->setText(QString("%1 %2").arg((int)(siz.width())).arg((int)(siz.height())));
+
+        // prevents string/path parsing too often
+        if(item!=lastItemDataUpdate)
+        {
+            QFileInfo f_info(item->getImagePath());
+
+            if(!f_info.exists())
+            {
+                ui->imageDataLabel->setText(tr("not found")); // if image is not present on specified path (inform the user)
+                ui->imageDataLabel->setToolTip(tr("No image was found"));
+            }
+            else
+            {
+                ui->imageDataLabel->setText(f_info.fileName());
+                ui->imageDataLabel->setToolTip(QString("%1 : %2").arg(f_info.fileName()).arg(f_info.filePath()));
+            }
+        }
+    }
+    else
+    {
+        // set default values for each label
+        ui->nameDataLabel->setText("xxx");
+        ui->positionDataLabel->setText("xxx");
+        ui->lbDataLabel->setText("xxx");
+        ui->rotationDataLabel->setText("xxx");
+        ui->sizeDataLabel->setText("xxx");
+        ui->imageDataLabel->setText("xxx");
+        ui->imageDataLabel->setToolTip(tr("No image availible"));
+    }
+
+    // Update last updated pointer, so some operations above does not have to run at next iteration.
+    // For example during mouse move, QFileInfo operations can really slow down the process.
+    lastItemDataUpdate = item;
+}
+
 void MainWindow::updateVisibleItems()
 {
     // if data in image_handlers is changed, we need to call update function of each visible item, to immediately apply changes
     for(int i=0; i<displayedItems->count(); i++)
         displayedItems->at(i)->updateData();
 }
+
+void MainWindow::saveAsProfileSlot()
+{
+    // we will automatically clear temp_ini_file_path here, so saveProfileSlot() will surely ask for new path
+    temp_ini_file_path.clear();
+    saveProfileSlot();
+}
+
+void MainWindow::saveProfileSlot()
+{
+    // save settings into ini file
+    QString file_to_save; // if we have some ini file loaded, we will try use that one first
+    if(temp_ini_file_path.isEmpty())
+    {
+        file_to_save = QFileDialog::getSaveFileName(this, tr("Save profile"), QDir::currentPath(), tr("*.ini"));
+
+        QFileInfo f_init(file_to_save);
+        // We do not want to add suffix to file, which suffix already has. This can happen if
+        // we choose to replace file in save file dialog. Also if user clicks cancel, we must not
+        // to append anything, since later condition (detection of empty string) will fail
+        // to detect user's cancel decision.
+        if(!file_to_save.isEmpty() && f_init.suffix().isEmpty()) file_to_save.append(".ini");
+    }
+    else
+    {
+        // Check if file exists and really is .ini file. If not we will request for new file path and name.
+        QFileInfo file_check(temp_ini_file_path);
+        if(!file_check.exists() || file_check.suffix()!="ini")
+        {
+            file_to_save = QFileDialog::getSaveFileName(this, tr("Save profile"), QDir::currentPath(), tr("*.ini"));
+
+            QFileInfo f_init(file_to_save);
+            // We do not want to add suffix to file, which suffix already has. This can happen if
+            // we choose to replace file in save file dialog. Also if user clicks cancel, we must not
+            // to append anything, since later condition (detection of empty string) will fail
+            // to detect user's cancel decision.
+            if(!file_to_save.isEmpty() && f_init.suffix().isEmpty()) file_to_save.append(".ini");
+        }
+        else file_to_save = temp_ini_file_path;
+    }
+
+    if(!file_to_save.isEmpty())
+    {
+        temp_ini_file_path = file_to_save;
+
+        QFileInfo f_info(file_to_save);
+
+        // if file already exists, remove it
+        if(f_info.exists()) QFile::remove(file_to_save);
+
+        QSettings setts(file_to_save, QSettings::IniFormat, this);
+
+        // save scene setting
+        setts.beginGroup("scene");
+        setts.setValue("width", hSize);
+        setts.setValue("height", vSize);
+        setts.setValue("mode", ratio_mode);
+        setts.setValue("im_mode", image_mode);
+        setts.endGroup();
+
+        // save all paths to all images
+        setts.beginGroup("elements");
+        int index;
+        for(QList<image_handler * >::iterator it = imageItems->begin(); it!=imageItems->end(); it++)
+        {
+            index = (*it)->getIndex();
+            QString result_key = rolesList->at(index)->replace(" ", "").replace("\"", "");
+            setts.setValue(QString("%1_IMAGE_PATH").arg(result_key), (*it)->getImagePath().isEmpty() ? "none" : (*it)->getImagePath());
+            setts.setValue(QString("%1_SIZE_W").arg(result_key), (*it)->getItemSize().width());
+            setts.setValue(QString("%1_SIZE_H").arg(result_key), (*it)->getItemSize().height());
+            setts.setValue(QString("%1_POSITION_X").arg(result_key), (*it)->getPosition().x());
+            setts.setValue(QString("%1_POSITION_Y").arg(result_key), (*it)->getPosition().y());
+            setts.setValue(QString("%1_BLCORNER_X").arg(result_key), (*it)->getLBCorner().x());
+            setts.setValue(QString("%1_BLCORNER_Y").arg(result_key), (*it)->getLBCorner().y());
+            setts.setValue(QString("%1_ROTATION").arg(result_key), (int)((*it)->getItemRotation()));
+        }
+        setts.endGroup();
+
+        // set file readonly, so we block random corrupt if file is opened manually
+        //file_handler.setPermissions(QIODevice::ReadOnly);
+    }
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    QMessageBox::StandardButton decision;
+
+    decision = QMessageBox::question(this, tr("Closing application"), tr("Are you sure you want to quit?"), QMessageBox::Yes|QMessageBox::No);
+
+    if(decision==QMessageBox::No)
+    {
+        // leave exit sequence
+        event->ignore();
+        return;
+    }
+
+    // user really wish to quit
+    decision = QMessageBox::question(this, tr("Save profile"), tr("Would you like to save your profile before exit?"), QMessageBox::Yes|QMessageBox::No);
+
+    if(decision==QMessageBox::Yes)
+        saveProfileSlot();
+}
+
+void MainWindow::initFileLoaderWindow()
+{
+    // load init file
+    QString ini_file_path = QFileDialog::getOpenFileName(this, tr("Load profile"), QDir::currentPath(), tr("*.ini"));
+
+    // no file selected
+    if(ini_file_path.isEmpty()) return;
+
+    QSettings setts(ini_file_path, QSettings::IniFormat, this);
+
+    // store the ini file path so we can use for quick save actions
+    temp_ini_file_path = ini_file_path;
+
+    // READING SCENE SECTION OF DATA
+    QString section = "scene";
+
+    hSize = setts.value(QString("%1/width").arg(section), 320.0).toDouble();
+    vSize = setts.value(QString("%1/height").arg(section), 240.0).toDouble();
+    ratio_mode = (port_land_mode)(setts.value(QString("%1/mode").arg(section), LANDSCAPE).toInt());
+    image_mode = (multiple_image_mode)(setts.value(QString("%1/im_mode").arg(section), SINGLE).toInt());
+
+    // udpate img and ration modes without switching
+    togglePortraitLandscapeMode(true);
+    toggleSingleMultipleImageMode(true);
+
+    // READING ELEMENTS SECTION OF DATA
+    section.clear();
+    section.append("elements");
+
+    int index;
+    for(QList<image_handler * >::iterator it = imageItems->begin(); it!=imageItems->end(); it++)
+    {
+        index = (*it)->getIndex();
+        QString result_key = rolesList->at(index)->replace(" ", "").replace("\"", "");
+        // generate result group/key string and load data
+        QString img_path = setts.value(QString("%1/%2_IMAGE_PATH").arg(section).arg(result_key), "").toString();
+        qreal w = setts.value(QString("%1/%2_SIZE_W").arg(section).arg(result_key), 100.0).toDouble();
+        qreal h = setts.value(QString("%1/%2_SIZE_H").arg(section).arg(result_key), 100.0).toDouble();
+        qreal x = setts.value(QString("%1/%2_POSITION_X").arg(section).arg(result_key), hSize/2.0).toDouble();
+        qreal y = setts.value(QString("%1/%2_POSITION_Y").arg(section).arg(result_key), vSize/2.0).toDouble();
+        qreal lbx = setts.value(QString("%1/%2_BLCORNER_X").arg(section).arg(result_key), hSize/2.0-100.0).toDouble();
+        qreal lby = setts.value(QString("%1/%2_BLCORNER_Y").arg(section).arg(result_key), vSize/2.0-100.0).toDouble();
+        qreal rot = setts.value(QString("%1/%2_ROTATION").arg(section).arg(result_key), 0.0).toDouble();
+
+        // DO SOME CORRECTIONS OR CHECKS IF NEEDED
+        if(img_path=="none") img_path.clear(); // if none statement is present, we will set empty string
+        // %360 just in case that data will be corrupted and a random number occures (experience during testing, but hopefully repaired)
+        rot = (int)(rot)%360;
+        rot = rot>0.0 ? rot : -rot;
+
+        // now update appropriate image handler with loaded values
+        (*it)->setImage(img_path);
+        (*it)->setItemSize(QSizeF(w, h));
+        (*it)->setPosition(QPointF(x, y));
+        (*it)->setLBCorner(QPointF(lbx, lby));
+        (*it)->setItemRotation(rot);
+    }
+
+    // update items that have correctly loaded images
+    updateRolesListWidgetColor();
+}
+
 
 void MainWindow::removeAllDisplayedItems()
 {

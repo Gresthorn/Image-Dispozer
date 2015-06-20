@@ -17,6 +17,24 @@ imageView::~imageView()
 
 }
 
+void imageView::checkForSingleSelection()
+{
+    // check if single item is selected
+
+    image_handler * item = NULL; // default value
+
+    if(scene()->selectedItems().count()==1)
+    {
+        // Retype into resizeRect, since that only we are interested in.
+        // If more kind of objects are added to the scene and needs to be
+        // considered as well, use dynamic_cast.
+        resizeRect * rect_s = qgraphicsitem_cast<resizeRect * >(scene()->selectedItems().first());
+        if(rect_s!=NULL) item = rect_s->imageHandlerP(); // obtain image handler pointer
+    }
+
+    emit currentSingleItemSelection(item);
+}
+
 void imageView::wheelEvent(QWheelEvent* event) {
     if ((event->modifiers()&Qt::ControlModifier)
                     && event->angleDelta().x() == 0) {
@@ -34,12 +52,15 @@ void imageView::wheelEvent(QWheelEvent* event) {
 
             event->accept();
     }
-    else if(event->modifiers()==Qt::AltModifier)
+    else if(event->modifiers()&Qt::AltModifier)
     {
+
         // rotate items selected
         if(!scene()->selectedItems().isEmpty())
         {
-            double angle = event->angleDelta().y()/rotationSmoothness; // XXX/24.0 is because of smoother rotation
+            // XXX/24.0 is because of smoother rotation (somehow sometimes during ALT pressed, y-delta is zero)
+            double angle = event->angleDelta().y()>0 ? event->angleDelta().y()/rotationSmoothness :  event->angleDelta().x()/rotationSmoothness;
+
             for(int i = 0; i<scene()->selectedItems().count(); i++)
             {
                 resizeRect * item = dynamic_cast<resizeRect * >(scene()->selectedItems().at(i));
@@ -54,6 +75,10 @@ void imageView::wheelEvent(QWheelEvent* event) {
         }
     }
     else QGraphicsView::wheelEvent(event);
+
+    // on each interaction we need to check for single
+    // item selection (because of updating element info)
+    checkForSingleSelection();
 }
 
 void imageView::keyPressEvent(QKeyEvent *event)
@@ -96,6 +121,33 @@ void imageView::keyPressEvent(QKeyEvent *event)
     else QGraphicsView::keyPressEvent(event);
 }
 
+void imageView::mousePressEvent(QMouseEvent *event)
+{
+    QGraphicsView::mousePressEvent(event);
+
+    // on each interaction we need to check for single
+    // item selection (because of updating element info)
+    checkForSingleSelection();
+}
+
+void imageView::mouseMoveEvent(QMouseEvent *event)
+{
+    QGraphicsView::mouseMoveEvent(event);
+
+    // on each interaction we need to check for single
+    // item selection (because of updating element info)
+    checkForSingleSelection();
+}
+
+void imageView::mouseReleaseEvent(QMouseEvent *event)
+{
+    QGraphicsView::mouseReleaseEvent(event);
+
+    // on each interaction we need to check for single
+    // item selection (because of updating element info)
+    checkForSingleSelection();
+}
+
 void imageView::showContextMenu(const QPoint &position)
 {
     // build new context menu and get its global position at cursor
@@ -106,6 +158,11 @@ void imageView::showContextMenu(const QPoint &position)
     QList<QAction * > actionsList;
     QAction * hideSelected = new QAction(tr("Hide selected"), &itemContextMenu);
     actionsList.append(hideSelected);
+    QAction * saveData = new QAction(tr("Save items data"), &itemContextMenu);
+    actionsList.append(saveData);
+
+    // disable saveData option if 0 or more than 1 items are selected
+    if(scene()->selectedItems().count()!=1) saveData->setDisabled(true);
 
     // fill list with desired actions
     itemContextMenu.addActions(actionsList);
@@ -129,6 +186,12 @@ void imageView::showContextMenu(const QPoint &position)
 
                 emit updateDisplayedItemsVector(item);
             }
+        }
+        else if(selected==saveData)
+        {
+            resizeRect * item = qgraphicsitem_cast<resizeRect * >(scene()->selectedItems().first());
+            // emit signal with pointer to image handler containing data
+            emit saveSelectedItemData(item->imageHandlerP());
         }
     }
 

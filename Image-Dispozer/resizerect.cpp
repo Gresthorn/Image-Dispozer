@@ -1,7 +1,7 @@
 #include "resizerect.h"
 
 resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent)
-    : QGraphicsItem(parent), cornerSquareSize(5.0)
+    : QGraphicsItem(parent), cornerSquareSize(3.0)
 {
     xPos = x;
     yPos = y;
@@ -32,6 +32,7 @@ resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent
 
     setPos(x, y);
     setAcceptHoverEvents(true);
+    setAcceptDrops(true);
 }
 
 resizeRect::~resizeRect()
@@ -45,11 +46,20 @@ void resizeRect::incrementRotation(qreal angle)
     qreal temp_rot = rotation()+angle;
     temp_rot = (((temp_rot)<0.0) ? temp_rot+360.0 : temp_rot);
 
-    if(qFuzzyCompare(temp_rot, 360)) setRotation(0.0);
+    if(qFuzzyCompare(temp_rot, 360))
+    {
+        setRotation(0.0);
+        // also update wrapper's bottom left corner which changes with rotating as well
+        image->setLBCorner(getWrapperBottomLeft());
+        image->setItemRotation(0.0);
+    }
     else
     {
         if(temp_rot>360.0) temp_rot = 90.0;
         setRotation(temp_rot);
+        // also update wrapper's bottom left corner which changes with rotating as well
+        image->setLBCorner(getWrapperBottomLeft());
+        image->setItemRotation(temp_rot);
     }
 }
 
@@ -193,6 +203,7 @@ QPointF resizeRect::getWrapperBottomLeft()
     {
         x = mapToScene(topLeft);
         y = mapToScene(bottomLeft);
+
         return QPointF(x.x(), y.y());
     }
     else if(rotAngle>=90.0 && rotAngle<180.0)
@@ -246,6 +257,16 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         //prepareGeometryChange();
         QGraphicsItem::mouseMoveEvent(event);
         this->scene()->update();
+
+        // update data in image, if real time update is enabled
+        QPointF curr_point = mapToScene(0.0, 0.0);
+        xPos = curr_point.x();
+        yPos = curr_point.y();
+
+        image->setPosition(curr_point);
+        image->setItemSize(QSizeF(width, height));
+        image->setLBCorner(getWrapperBottomLeft());
+
         return;
     }
 
@@ -352,6 +373,10 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     // if sides are exchanged
     width = (width<0.0) ? -width : width;
     height = (height<0.0) ? -height : height;
+
+    QPointF curr_point = mapToScene(0.0, 0.0);
+    xPos = curr_point.x();
+    yPos = curr_point.y();
 
     this->scene()->update();
 }

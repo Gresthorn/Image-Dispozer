@@ -12,6 +12,12 @@
 #include <QKeyEvent>
 #include <QSet>
 #include <QPropertyAnimation>
+#include <QSettings>
+#include <QMessageBox>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QFile>
 #include <QThread>
 
 #include "imageselector.h"
@@ -58,6 +64,7 @@ private:
 
     const unsigned int item_opaque_animation_delay;
     const unsigned int border_resize_animation_delay;
+    const qreal border_pen_width;
 
     imageScene * scene;
     imageView * view;
@@ -67,21 +74,40 @@ private:
 
     borderRect * borderRectangle;
 
+    image_handler * tempItemData;
+    image_handler * lastItemDataUpdate;
+    QString tempFilePath;
+
+    QString temp_ini_file_path;
+
     void initializeTreeItems(void);
     void updateRolesListWidget(void);
     void updateRolesListWidgetColor(void);
     void updateVisibleItems(void);
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 public slots:
     void removeAllDisplayedItems(void);
     void imageSelectorWindow(void);
+    void initFileLoaderWindow(void);
+
     void displayNewRectItem(int row);
     void updateDisplayedItemsVector(resizeRect * item);
-    void togglePortraitLandscapeMode(void);
-    void toggleSingleMultipleImageMode(void);
+    void togglePortraitLandscapeMode(bool just_update = false);
+    void toggleSingleMultipleImageMode(bool just_update = false);
+
+    void saveSelectedItemData(image_handler * data);
+    void applySavedDataSlot(void);
 
     void hideDisplayedItems(void);
     void revealDisplayedItems(void);
+
+    void updateElementInfo(image_handler * item);
+
+    void saveProfileSlot(void);
+    void saveAsProfileSlot(void);
 };
 
 #endif // MAINWINDOW_H

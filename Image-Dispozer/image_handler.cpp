@@ -19,7 +19,9 @@ image_handler::image_handler(QString path, int roleCode, int index)
 
     // only implicit values
     xyPosition.setX(0.0); xyPosition.setY(0.0);
+    lbCorner.setX(-100.0); lbCorner.setY(-100.0);
     itemSize.setWidth(100.0); itemSize.setHeight(100.0);
+    itemRotation = 0.0;
 }
 
 image_handler::image_handler(QPixmap img, QString path, int roleCode, int index, bool file_correct)
@@ -40,7 +42,9 @@ image_handler::image_handler(QPixmap img, QString path, int roleCode, int index,
 
     // only implicit values
     xyPosition.setX(0.0); xyPosition.setY(0.0);
+    lbCorner.setX(-100.0); lbCorner.setY(-100.0);
     itemSize.setWidth(100.0); itemSize.setHeight(100.0);
+    itemRotation = 0.0;
 }
 
 image_handler &image_handler::operator=(image_handler &image)
@@ -52,6 +56,8 @@ image_handler &image_handler::operator=(image_handler &image)
     // update position and size of newly created item
     new_handler->setItemSize(this->getItemSize());
     new_handler->setPosition(this->getPosition());
+    new_handler->setLBCorner(this->getLBCorner());
+    new_handler->setItemRotation(this->getItemRotation());
 
     return *new_handler;
 }

@@ -2,7 +2,8 @@
 #define IMAGESCENE_H
 
 #include <QGraphicsScene>
-
+#include <QDebug>
+#include <QGraphicsItem>
 
 enum sceneItemsMode
 {
@@ -23,6 +24,7 @@ public:
 
     sceneItemsMode getSceneItemsMode(void) { return itemsMode; }
     void setSceneItemsMode(sceneItemsMode mode) { itemsMode = mode; }
+
 };
 
 #endif // IMAGESCENE_H

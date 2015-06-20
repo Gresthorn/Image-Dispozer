@@ -121,11 +121,12 @@ public:
 
     void updateData(void);
 
+    inline image_handler * imageHandlerP(void) { return image; }
+
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget);
     QRectF boundingRect() const;
 
 signals:
-    void isBeingDeleted(resizeRect * );
 };
 
 #endif // RESIZERECT_H

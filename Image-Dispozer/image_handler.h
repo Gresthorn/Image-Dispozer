@@ -21,6 +21,8 @@ private:
 
     QSizeF itemSize;
     QPointF xyPosition;
+    QPointF lbCorner;
+    qreal itemRotation;
 
     bool loadImage(QString imgPath);
     QImage * load16bitBmp565(QString file, bool bigEndian);
@@ -41,8 +43,12 @@ public:
 
     void setPosition(QPointF newPosition) { xyPosition = newPosition; }
     void setItemSize(QSizeF newSize) { itemSize = newSize; }
+    void setItemRotation(qreal angle) { itemRotation = angle; }
+    void setLBCorner(QPointF newCorner) { lbCorner = newCorner; }
     QPointF getPosition(void) { return xyPosition; }
     QSizeF getItemSize(void) { return itemSize; }
+    qreal getItemRotation(void) { return itemRotation; }
+    QPointF getLBCorner(void) { return lbCorner; }
 
     QString getTempImagePath(void) { return tempImagePath; }
     void setTempImagePath(QString path) { tempImagePath = path; }

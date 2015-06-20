@@ -7,6 +7,8 @@
 #include <QAction>
 #include <QList>
 #include <QGraphicsItem>
+#include <QMessageBox>
+#include <QMouseEvent>
 
 #include "resizerect.h"
 #include "imagescene.h"
@@ -33,12 +35,18 @@ public:
 protected:
     void wheelEvent(QWheelEvent *event);
     void keyPressEvent(QKeyEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
 
 public slots:
     void showContextMenu(const QPoint & position);
+    void checkForSingleSelection(void);
 
 signals:
     void updateDisplayedItemsVector(class resizeRect * );
+    void saveSelectedItemData(class image_handler * );
+    void currentSingleItemSelection(class image_handler * );
 };
 
 #endif // IMAGEVIEW_H

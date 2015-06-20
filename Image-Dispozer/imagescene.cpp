@@ -4,6 +4,8 @@ imageScene::imageScene(QObject *parent)
     : QGraphicsScene(parent)
 {
     itemsMode = SINGLE_ITEM;
+
+
 }
 
 imageScene::~imageScene()
