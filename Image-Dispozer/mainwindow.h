@@ -14,18 +14,24 @@
 #include <QPropertyAnimation>
 #include <QSettings>
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QFile>
 #include <QThread>
 
+#include "manualdatainput.h"
 #include "imageselector.h"
 #include "image_handler.h"
 #include "rolestring.h"
 #include "imageview.h"
 #include "imagescene.h"
 #include "borderrect.h"
+#include "infolabel.h"
+#include "versions.h"
+#include "contactdatadialog.h"
+#include "maincfgdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -51,6 +57,8 @@ private:
         SINGLE,
         MULTIPLE
     };
+
+    bool something_changed;
 
     port_land_mode ratio_mode;
     bool resize_on_ratio_change;
@@ -80,6 +88,21 @@ private:
 
     QString temp_ini_file_path;
 
+    QString start_sms_number;
+    QString stat_sms_number;
+    QString alarm_sms_number;
+    QString proto_sms_number;
+    QString call_number_1;
+    QString call_number_2;
+    QString call_number_3;
+    QString call_number_4;
+
+    int period;
+    QString per_units;
+    QString lan;
+    bool ack_banel_error;
+    int volume;
+
     void initializeTreeItems(void);
     void updateRolesListWidget(void);
     void updateRolesListWidgetColor(void);
@@ -92,6 +115,8 @@ public slots:
     void removeAllDisplayedItems(void);
     void imageSelectorWindow(void);
     void initFileLoaderWindow(void);
+    void contactDataWindow(void);
+    void mainCfgWindow(void);
 
     void displayNewRectItem(int row);
     void updateDisplayedItemsVector(resizeRect * item);
@@ -108,6 +133,13 @@ public slots:
 
     void saveProfileSlot(void);
     void saveAsProfileSlot(void);
+
+    void updateItemRotation(void);
+    void updateItemSize(void);
+    void updateItemPosition(void);
+    void updateItemLBCorner(void);
+
+    void somethingChangedSlot(void) { something_changed = true;  }
 };
 
 #endif // MAINWINDOW_H

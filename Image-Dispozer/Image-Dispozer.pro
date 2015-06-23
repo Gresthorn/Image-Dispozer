@@ -20,7 +20,11 @@ SOURCES += main.cpp\
     imagescene.cpp \
     imageview.cpp \
     resizerect.cpp \
-    borderrect.cpp
+    borderrect.cpp \
+    infolabel.cpp \
+    manualdatainput.cpp \
+    contactdatadialog.cpp \
+    maincfgdialog.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -29,10 +33,17 @@ HEADERS  += mainwindow.h \
     imagescene.h \
     imageview.h \
     resizerect.h \
-    borderrect.h
+    borderrect.h \
+    infolabel.h \
+    manualdatainput.h \
+    versions.h \
+    contactdatadialog.h \
+    maincfgdialog.h
 
 FORMS    += mainwindow.ui \
-    imageselector.ui
+    imageselector.ui \
+    contactdatadialog.ui \
+    maincfgdialog.ui
 
 RESOURCES += \
     icons.qrc

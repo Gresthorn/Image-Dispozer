@@ -82,6 +82,7 @@ void resizeRect::updateData()
 {
     QSizeF sz = image->getItemSize();
     QPointF pt = image->getPosition();
+    qreal rot = image->getItemRotation();
 
     // firstly set position
     this->setPos(pt);
@@ -97,6 +98,12 @@ void resizeRect::updateData()
     topRight.setX(width/2.0); topRight.setY(height/2.0);
     bottomRight.setX(width/2.0); bottomRight.setY(-height/2.0);
     bottomLeft.setX(-width/2.0); bottomLeft.setY(-height/2.0);
+
+    // finally we will rotate item
+    setRotation(rot);
+
+    // update scene so changes can directly be visible
+    this->scene()->update();
 }
 
 void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)

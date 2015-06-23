@@ -2,11 +2,14 @@
 #include "ui_imageselector.h"
 
 ImageSelector::ImageSelector(QVector<roleString * > * roles_list, QList<image_handler * > * image_items,
-                             QStringList * imported_images, QWidget * parent) :
+                             QStringList * imported_images, bool * ok, QWidget * parent) :
     QDialog(parent),
     ui(new Ui::ImageSelector)
 {
     ui->setupUi(this);
+
+    ok_s = ok;
+    *ok_s = false; // default
 
     preview = NULL; // preview pixmap in previewLabel
     ui->previewLabel->setScaledContents(true); // pixmap will fit the size of label
@@ -424,4 +427,6 @@ void ImageSelector::acceptButtonClicked()
 
     // if there is some error message to be displayed
     if(!result.isEmpty()) QMessageBox::warning(this, tr("Some images could not be loaded"), result, QMessageBox::Ok);
+
+    *ok_s = true;
 }

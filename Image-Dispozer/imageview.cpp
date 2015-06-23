@@ -17,22 +17,34 @@ imageView::~imageView()
 
 }
 
-void imageView::checkForSingleSelection()
+image_handler *imageView::checkForSingleSelection(bool emit_handler_signal, bool emit_rect_signal, resizeRect ** selected_rect)
 {
     // check if single item is selected
 
     image_handler * item = NULL; // default value
+
+    resizeRect * rect_s;
 
     if(scene()->selectedItems().count()==1)
     {
         // Retype into resizeRect, since that only we are interested in.
         // If more kind of objects are added to the scene and needs to be
         // considered as well, use dynamic_cast.
-        resizeRect * rect_s = qgraphicsitem_cast<resizeRect * >(scene()->selectedItems().first());
+        rect_s = qgraphicsitem_cast<resizeRect * >(scene()->selectedItems().first());
         if(rect_s!=NULL) item = rect_s->imageHandlerP(); // obtain image handler pointer
     }
 
-    emit currentSingleItemSelection(item);
+    // Sometimes this function is called as a common function and the item is required to get as return value.
+    // Thus we can achieve this via emit_signal boolean.
+    if(emit_handler_signal) emit currentSingleItemSelection(item);
+
+    // If emit_rect_signal is true (by default false) we also emit signal with information about clicked item in scene
+    if(emit_rect_signal) emit currentSingleItemSelectionRect(rect_s);
+
+    // if selected_rect is not NULL, somewhere in program we requested the pointer to selected rect as well
+    if(selected_rect!=NULL) *selected_rect = rect_s;
+
+    return item;
 }
 
 void imageView::wheelEvent(QWheelEvent* event) {

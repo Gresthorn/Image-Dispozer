@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>mainCFGDialog</class>
+ <widget class="QDialog" name="mainCFGDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>310</width>
+    <height>198</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>310</width>
+    <height>198</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>310</width>
+    <height>198</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QLabel" name="contactPeriodLabel">
+     <property name="text">
+      <string>Contact period:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QComboBox" name="periodUnitsEdit">
+     <item>
+      <property name="text">
+       <string>Minutes</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Hours</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Days</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Months</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QSpinBox" name="contactPeriodEdit">
+     <property name="value">
+      <number>60</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="languageLabel">
+     <property name="text">
+      <string>Language:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="ackLabel">
+     <property name="text">
+      <string>Acknowledge enable:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="periodUnitsLabel">
+     <property name="text">
+      <string>Contact period units:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QComboBox" name="ackEdit">
+     <item>
+      <property name="text">
+       <string>Yes</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>No</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QWidget" name="buttonsWrapper" native="true">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="confirmationButton">
+        <property name="text">
+         <string>OK</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="cancelButton">
+        <property name="text">
+         <string>Cancel</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="4" column="1">
+    <widget class="QComboBox" name="gsmVolumeEdit">
+     <item>
+      <property name="text">
+       <string>0dB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>-6dB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>-12dB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>-18dB</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>-24dB</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QComboBox" name="languageEdit">
+     <item>
+      <property name="text">
+       <string>ENG</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SVK</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>CZE</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>PLN</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>HUN</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>GER</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>GSM speech volume:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -25,7 +25,7 @@ class ImageSelector : public QDialog
 
 public:
     explicit ImageSelector(QVector<roleString * > * roles_list, QList<image_handler * > * image_items,
-                           QStringList *imported_images, QWidget * parent = 0);
+                           QStringList *imported_images, bool * ok, QWidget * parent = 0);
     ~ImageSelector();
 
 private:
@@ -35,6 +35,8 @@ private:
     QStringList * importedImages;
 
     image_handler * preview;
+
+    bool *ok_s;
 
     void switchToAnotherParent(QTreeWidgetItem * item, int index);
 

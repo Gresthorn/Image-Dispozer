@@ -11,6 +11,9 @@ MainWindow::MainWindow(QWidget *parent) :
     // let tempData to be NULL at startup until first save request by user
     tempItemData = lastItemDataUpdate = NULL;
 
+    // this value should be set to true immediately if something in project is changed
+    something_changed = false;
+
     initializeTreeItems();
 
     // create new scene and view
@@ -70,15 +73,27 @@ MainWindow::MainWindow(QWidget *parent) :
 
     temp_ini_file_path.clear();
 
+    period = 4;
+    ack_banel_error = false;
+    volume = -12;
+
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
     connect(ui->actionOpen_profile, SIGNAL(triggered()), this, SLOT(initFileLoaderWindow()));
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveProfileSlot()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsProfileSlot()));
+    connect(ui->actionContact_data, SIGNAL(triggered()), this, SLOT(contactDataWindow()));
+    connect(ui->actionMain_CFG, SIGNAL(triggered()), this, SLOT(mainCfgWindow()));
+
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
     connect(ui->switchPortraitLandscapeButton, SIGNAL(clicked()), this, SLOT(togglePortraitLandscapeMode()));
     connect(ui->switchSingleMultipleImagesButton, SIGNAL(clicked()), this, SLOT(toggleSingleMultipleImageMode()));
     connect(ui->applySavedDataButton, SIGNAL(clicked()), this, SLOT(applySavedDataSlot()));
+
+    connect(ui->rotationDataLabel, SIGNAL(triggered()), this, SLOT(updateItemRotation()));
+    connect(ui->sizeDataLabel, SIGNAL(triggered()), this, SLOT(updateItemSize()));
+    connect(ui->positionDataLabel, SIGNAL(triggered()), this, SLOT(updateItemPosition()));
+    connect(ui->lbDataLabel, SIGNAL(triggered()), this, SLOT(updateItemLBCorner()));
 }
 
 MainWindow::~MainWindow()
@@ -195,12 +210,16 @@ void MainWindow::updateRolesListWidgetColor()
 void MainWindow::imageSelectorWindow()
 {
     // create dialog window for selecting and linking images to their appropriate roles
-    ImageSelector im_select_window(rolesList, imageItems, importedImages, this);
+    bool ok;
+    ImageSelector im_select_window(rolesList, imageItems, importedImages, &ok, this);
     im_select_window.exec();
 
     updateRolesListWidgetColor();
 
     this->centralWidget()->setFocusPolicy(Qt::StrongFocus);
+
+    // if user did not clicked cancel, we will believe that something was updated
+    if(ok) somethingChangedSlot();
 }
 
 void MainWindow::displayNewRectItem(int row)
@@ -255,13 +274,16 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
     else if(ratio_mode==PORTRAIT)
     {
         // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
-        if(!just_update) ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
-        ratio_mode = LANDSCAPE;
+        if(!just_update) ratio_mode = LANDSCAPE;
+        ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
     }
 
-    qreal temp = hSize;
-    hSize = vSize;
-    vSize = temp;
+    if(!just_update)
+    {
+        qreal temp = hSize;
+        hSize = vSize;
+        vSize = temp;
+    }
 
     hideDisplayedItems();
     //QThread::msleep(item_opaque_animation_delay);
@@ -308,6 +330,8 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
     // update displayed items (it there are any)
     updateVisibleItems();
 
+    somethingChangedSlot();
+
     scene->update();
 }
 
@@ -352,6 +376,8 @@ void MainWindow::applySavedDataSlot()
             imageItems->at(index)->setItemSize(tempItemData->getItemSize());
             imageItems->at(index)->setItemRotation(tempItemData->getItemRotation());
         }
+
+        somethingChangedSlot();
     }
 
     view->viewport()->update();
@@ -449,6 +475,151 @@ void MainWindow::saveAsProfileSlot()
     saveProfileSlot();
 }
 
+void MainWindow::updateItemRotation()
+{
+    resizeRect * rect = NULL;
+    image_handler * item = view->checkForSingleSelection(false, false, &rect);
+
+    if(item==NULL || rect==NULL) return; // if from some reasons no selected item could be found
+
+    qreal angle = QInputDialog::getInt(this, tr("Angle"), tr("Set new angle"), item->getItemRotation(), 0, 359);
+
+    // update infoLabel
+    ui->rotationDataLabel->setText(QString("%1").arg(angle));
+
+    // update item in scene and image handler
+    item->setItemRotation(angle);
+    rect->updateData();
+}
+
+void MainWindow::updateItemSize()
+{
+    resizeRect * rect = NULL;
+    image_handler * item = view->checkForSingleSelection(false, false, &rect);
+
+    if(item==NULL || rect==NULL) return; // if from some reasons no selected item could be found
+
+    // set list with labels
+    QStringList labels;
+    labels.append(tr("Image width:"));
+    labels.append("Image height:");
+
+    // set values list according to labels
+    QList<int> values;
+    values.append(item->getItemSize().width());
+    values.append(item->getItemSize().height());
+
+    // set intervals and increment step in order (min, max, step) for each value in list
+    QList<int> intervals_step;
+    intervals_step.append(5);
+    intervals_step.append(500);
+    intervals_step.append(1);
+    intervals_step.append(5);
+    intervals_step.append(500);
+    intervals_step.append(1);
+
+    bool ok;
+
+    // start user input dialog
+    manualDataInput * input = new manualDataInput(tr("Change size"), labels, &values, intervals_step, &ok, this);
+    input->exec();
+
+    // if ok is set to false, no change is going to be done, Cancel button was clicked
+    if(!ok) return;
+
+    // update infoLabel
+    ui->sizeDataLabel->setText(QString("%1 %2").arg(values.at(0)).arg(values.at(1)));
+
+    item->setItemSize(QSizeF(values.at(0), values.at(1)));
+    rect->updateData();
+}
+
+void MainWindow::updateItemPosition()
+{
+    resizeRect * rect = NULL;
+    image_handler * item = view->checkForSingleSelection(false, false, &rect);
+
+    if(item==NULL || rect==NULL) return; // if from some reasons no selected item could be found
+
+    // set list with labels
+    QStringList labels;
+    labels.append(tr("Image X:"));
+    labels.append("Image Y:");
+
+    // set values list according to labels
+    QList<int> values;
+    values.append(item->getPosition().x());
+    values.append(item->getPosition().y());
+
+    // set intervals and increment step in order (min, max, step) for each value in list
+    QList<int> intervals_step;
+    intervals_step.append(0);
+    intervals_step.append(500);
+    intervals_step.append(1);
+    intervals_step.append(0);
+    intervals_step.append(500);
+    intervals_step.append(1);
+
+    bool ok;
+
+    // start user input dialog
+    manualDataInput * input = new manualDataInput(tr("Change position"), labels, &values, intervals_step, &ok, this);
+    input->exec();
+
+    // if ok is set to false, no change is going to be done, Cancel button was clicked
+    if(!ok) return;
+
+    // update infoLabel
+    ui->positionDataLabel->setText(QString("%1 %2").arg(values.at(0)).arg(values.at(1)));
+
+    item->setPosition(QPointF(values.at(0), values.at(1)));
+    rect->updateData();
+}
+
+void MainWindow::updateItemLBCorner()
+{
+    resizeRect * rect = NULL;
+    image_handler * item = view->checkForSingleSelection(false, false, &rect);
+
+    if(item==NULL || rect==NULL) return; // if from some reasons no selected item could be found
+
+    // set list with labels
+    QStringList labels;
+    labels.append(tr("Image corner X:"));
+    labels.append("Image corner Y:");
+
+    // set values list according to labels
+    QList<int> values;
+    values.append(item->getLBCorner().x());
+    values.append(item->getLBCorner().y());
+
+    // set intervals and increment step in order (min, max, step) for each value in list
+    QList<int> intervals_step;
+    intervals_step.append(0);
+    intervals_step.append(500);
+    intervals_step.append(1);
+    intervals_step.append(0);
+    intervals_step.append(500);
+    intervals_step.append(1);
+
+    bool ok;
+
+    // start user input dialog
+    manualDataInput * input = new manualDataInput(tr("Change position"), labels, &values, intervals_step, &ok, this);
+    input->exec();
+
+    // if ok is set to false, no change is going to be done, Cancel button was clicked
+    if(!ok) return;
+
+    // update infoLabel
+    ui->lbDataLabel->setText(QString("%1 %2").arg(values.at(0)).arg(values.at(1)));
+
+    item->setLBCorner(QPointF(values.at(0), values.at(1)));
+    // transform LB corner to position (LB corner behaves like information holder, not defining position of real item)
+    item->setPosition(QPointF(values.at(0)+item->getItemSize().width()/2.0, values.at(1)+item->getItemSize().height()/2.0));
+    rect->updateData();
+}
+
 void MainWindow::saveProfileSlot()
 {
     // save settings into ini file
@@ -488,8 +659,9 @@ void MainWindow::saveProfileSlot()
 
         QFileInfo f_info(file_to_save);
 
+        QFile file_handler(file_to_save);
         // if file already exists, remove it
-        if(f_info.exists()) QFile::remove(file_to_save);
+        if(f_info.exists()) file_handler.remove();
 
         QSettings setts(file_to_save, QSettings::IniFormat, this);
 
@@ -499,6 +671,15 @@ void MainWindow::saveProfileSlot()
         setts.setValue("height", vSize);
         setts.setValue("mode", ratio_mode);
         setts.setValue("im_mode", image_mode);
+        setts.endGroup();
+
+        // save configuration
+        setts.beginGroup("config");
+        setts.setValue("period", period);
+        setts.setValue("perunits", per_units);
+        setts.setValue("language", lan);
+        setts.setValue("ackbanelerror", ack_banel_error);
+        setts.setValue("volume", volume);
         setts.endGroup();
 
         // save all paths to all images
@@ -519,8 +700,19 @@ void MainWindow::saveProfileSlot()
         }
         setts.endGroup();
 
-        // set file readonly, so we block random corrupt if file is opened manually
-        //file_handler.setPermissions(QIODevice::ReadOnly);
+        // save the contacts
+        setts.beginGroup("contacts");
+        setts.setValue("callnum1", call_number_1);
+        setts.setValue("callnum2", call_number_2);
+        setts.setValue("callnum3", call_number_3);
+        setts.setValue("callnum4", call_number_4);
+        setts.setValue("startsmsnumber", start_sms_number);
+        setts.setValue("statsmsnumber", stat_sms_number);
+        setts.setValue("alarm_smsnumber", alarm_sms_number);
+        setts.setValue("protosmsnumber", proto_sms_number);
+        setts.endGroup();
+
+        something_changed = false;
     }
 }
 
@@ -536,6 +728,9 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
         return;
     }
+
+    // if no change was done, do not ask for save
+    if(!something_changed) return;
 
     // user really wish to quit
     decision = QMessageBox::question(this, tr("Save profile"), tr("Would you like to save your profile before exit?"), QMessageBox::Yes|QMessageBox::No);
@@ -568,6 +763,30 @@ void MainWindow::initFileLoaderWindow()
     // udpate img and ration modes without switching
     togglePortraitLandscapeMode(true);
     toggleSingleMultipleImageMode(true);
+
+
+    // load contacts
+    section.clear();
+    section.append("contacts");
+
+    start_sms_number = setts.value(QString("%1/startsmsnumber").arg(section), QString("")).toString();
+    stat_sms_number = setts.value(QString("%1/statsmsnumber").arg(section), QString("")).toString();
+    alarm_sms_number = setts.value(QString("%1/alarmsmsnumber").arg(section), QString("")).toString();
+    proto_sms_number = setts.value(QString("%1/protosmsnumber").arg(section), QString("")).toString();
+    call_number_1 = setts.value(QString("%1/callnum1").arg(section), QString("")).toString();
+    call_number_2 = setts.value(QString("%1/callnum2").arg(section), QString("")).toString();
+    call_number_3 = setts.value(QString("%1/callnum3").arg(section), QString("")).toString();
+    call_number_4 = setts.value(QString("%1/callnum4").arg(section), QString("")).toString();
+
+    // load config
+    section.clear();
+    section.append("config");
+
+    period = setts.value(QString("%1/period").arg(section), 4).toInt();
+    per_units = setts.value(QString("%1/perunits").arg(section), QString("hours")).toString();
+    lan = setts.value(QString("%1/language").arg(section), QString("ENG")).toString();
+    ack_banel_error = setts.value(QString("%1/ackbanelerror").arg(section), false).toBool();
+    volume = setts.value(QString("%1/volume").arg(section), -12).toInt();
 
     // READING ELEMENTS SECTION OF DATA
     section.clear();
@@ -604,6 +823,22 @@ void MainWindow::initFileLoaderWindow()
 
     // update items that have correctly loaded images
     updateRolesListWidgetColor();
+
+    // we have new clear profile loaded
+    something_changed = false;
+}
+
+void MainWindow::contactDataWindow()
+{
+    contactDataDialog dialog(&start_sms_number, &stat_sms_number, &alarm_sms_number, &proto_sms_number,
+                             &call_number_1, &call_number_2, &call_number_3, &call_number_4, this);
+    dialog.exec();
+}
+
+void MainWindow::mainCfgWindow()
+{
+    mainCFGDialog dialog(&period, &per_units, &lan, &ack_banel_error, &volume, this);
+    dialog.exec();
 }
 
 

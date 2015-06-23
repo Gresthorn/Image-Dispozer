@@ -41,12 +41,13 @@ protected:
 
 public slots:
     void showContextMenu(const QPoint & position);
-    void checkForSingleSelection(void);
+    image_handler * checkForSingleSelection(bool emit_handler_signal = true, bool emit_rect_signal = false, class resizeRect ** selected_rect = NULL);
 
 signals:
     void updateDisplayedItemsVector(class resizeRect * );
     void saveSelectedItemData(class image_handler * );
     void currentSingleItemSelection(class image_handler * );
+    void currentSingleItemSelectionRect(class resizeRect * );
 };
 
 #endif // IMAGEVIEW_H
