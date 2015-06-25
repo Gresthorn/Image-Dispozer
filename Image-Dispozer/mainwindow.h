@@ -17,9 +17,11 @@
 #include <QInputDialog>
 #include <QDir>
 #include <QFileDialog>
+#include <QDirIterator>
 #include <QFileInfo>
 #include <QFile>
 #include <QThread>
+#include <QRegExp>
 
 #include "manualdatainput.h"
 #include "imageselector.h"
@@ -32,6 +34,7 @@
 #include "versions.h"
 #include "contactdatadialog.h"
 #include "maincfgdialog.h"
+#include "smscontentsdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -88,6 +91,15 @@ private:
 
     QString temp_ini_file_path;
 
+    QString start_sms_text;
+    QString stat_sms_text;
+    QString alarm_sms_text;
+    QString proto_sms_text;
+    bool start_sms_enabled;
+    bool stat_sms_enabled;
+    bool alarm_sms_enabled;
+    bool proto_sms_enabled;
+
     QString start_sms_number;
     QString stat_sms_number;
     QString alarm_sms_number;
@@ -104,9 +116,13 @@ private:
     int volume;
 
     void initializeTreeItems(void);
+    bool checkCompletitionTreeItems(void);
+    bool checkCompletitionContacts(void);
     void updateRolesListWidget(void);
     void updateRolesListWidgetColor(void);
     void updateVisibleItems(void);
+
+    QString createDirName(QString & path);
 
 protected:
     void closeEvent(QCloseEvent *event);
@@ -117,6 +133,7 @@ public slots:
     void initFileLoaderWindow(void);
     void contactDataWindow(void);
     void mainCfgWindow(void);
+    void smsContentsWindow(void);
 
     void displayNewRectItem(int row);
     void updateDisplayedItemsVector(resizeRect * item);
@@ -140,6 +157,8 @@ public slots:
     void updateItemLBCorner(void);
 
     void somethingChangedSlot(void) { something_changed = true;  }
+
+    void exportDataSlot(void);
 };
 
 #endif // MAINWINDOW_H

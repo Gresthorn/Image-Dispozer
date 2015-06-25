@@ -172,9 +172,7 @@ QImage * image_handler::load16bitBmp565(QString file, bool bigEndian)
     {
         // if big endian approach is used, also top left ixel is read as last
         // simple vertical flip can be used to make correctly displayed image
-        QTransform rotation180;
-        rotation180.scale(1.0, -1.0);
-        *img = img->transformed(rotation180); // transform image (horizontal flip)
+        *img = img->mirrored(false, true); // transform image (horizontal flip)
     }
 
     delete [] tempData;

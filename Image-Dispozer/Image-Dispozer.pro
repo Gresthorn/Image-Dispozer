@@ -24,7 +24,8 @@ SOURCES += main.cpp\
     infolabel.cpp \
     manualdatainput.cpp \
     contactdatadialog.cpp \
-    maincfgdialog.cpp
+    maincfgdialog.cpp \
+    smscontentsdialog.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -36,14 +37,15 @@ HEADERS  += mainwindow.h \
     borderrect.h \
     infolabel.h \
     manualdatainput.h \
-    versions.h \
     contactdatadialog.h \
-    maincfgdialog.h
+    maincfgdialog.h \
+    smscontentsdialog.h
 
 FORMS    += mainwindow.ui \
     imageselector.ui \
     contactdatadialog.ui \
-    maincfgdialog.ui
+    maincfgdialog.ui \
+    smscontentsdialog.ui
 
 RESOURCES += \
     icons.qrc

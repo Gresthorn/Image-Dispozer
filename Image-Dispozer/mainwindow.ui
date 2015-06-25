@@ -91,7 +91,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="icons.qrc">
            <normaloff>:/quick_access/icons/sweep-icon.png</normaloff>:/quick_access/icons/sweep-icon.png</iconset>
          </property>
          <property name="iconSize">
@@ -129,7 +129,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="icons.qrc">
            <normaloff>:/quick_access/icons/portrait-icon.png</normaloff>:/quick_access/icons/portrait-icon.png</iconset>
          </property>
          <property name="iconSize">
@@ -173,7 +173,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="icons.qrc">
            <normaloff>:/quick_access/icons/multiple-images-icon.png</normaloff>:/quick_access/icons/multiple-images-icon.png</iconset>
          </property>
          <property name="iconSize">
@@ -211,7 +211,7 @@
           <string/>
          </property>
          <property name="icon">
-          <iconset>
+          <iconset resource="icons.qrc">
            <normaloff>:/quick_access/icons/copy-parameters-icon.png</normaloff>:/quick_access/icons/copy-parameters-icon.png</iconset>
          </property>
          <property name="iconSize">
@@ -480,15 +480,17 @@
     <addaction name="actionOpen_profile"/>
     <addaction name="actionSave"/>
     <addaction name="actionSave_As"/>
+    <addaction name="actionExport"/>
     <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
-     <string>Target CFG ettings</string>
+     <string>Target CFG settings</string>
     </property>
     <addaction name="actionMain_CFG"/>
     <addaction name="actionContact_data"/>
+    <addaction name="actionSms_contents"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSettings"/>
@@ -529,6 +531,16 @@
     <string>Main CFG</string>
    </property>
   </action>
+  <action name="actionSms_contents">
+   <property name="text">
+    <string>Sms contents</string>
+   </property>
+  </action>
+  <action name="actionExport">
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
@@ -538,7 +550,9 @@
    <header>infolabel.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>actionClose</sender>

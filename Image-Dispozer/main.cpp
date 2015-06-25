@@ -1,5 +1,5 @@
 #include <QApplication>
-#include "versions.h"
+#include <QTranslator>
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])

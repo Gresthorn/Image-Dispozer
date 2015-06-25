@@ -76,6 +76,14 @@ MainWindow::MainWindow(QWidget *parent) :
     period = 4;
     ack_banel_error = false;
     volume = -12;
+    start_sms_enabled = stat_sms_enabled = alarm_sms_enabled = proto_sms_enabled = true;
+    start_sms_text.append(tr("The device is running..."));
+    stat_sms_text.append(tr("Status of the device is:"));
+    alarm_sms_text.append(tr("The device has a malfunction:"));
+    proto_sms_text.append(tr("SMS protocol of device:"));
+
+    per_units = QString("hours");
+    lan = QString("ENG");
 
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
     connect(ui->actionOpen_profile, SIGNAL(triggered()), this, SLOT(initFileLoaderWindow()));
@@ -83,6 +91,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsProfileSlot()));
     connect(ui->actionContact_data, SIGNAL(triggered()), this, SLOT(contactDataWindow()));
     connect(ui->actionMain_CFG, SIGNAL(triggered()), this, SLOT(mainCfgWindow()));
+    connect(ui->actionSms_contents, SIGNAL(triggered()), this, SLOT(smsContentsWindow()));
+    connect(ui->actionExport, SIGNAL(triggered()), this, SLOT(exportDataSlot()));
 
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
@@ -172,6 +182,33 @@ void MainWindow::initializeTreeItems()
     updateRolesListWidget();
 
     displayedItems = new QList<resizeRect * >;
+}
+
+bool MainWindow::checkCompletitionTreeItems()
+{
+    // go throught all items and check if images are correctly set
+    for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+    {
+        if(!(*it)->isFileCorrect()) return false;
+    }
+
+    return true;
+}
+
+bool MainWindow::checkCompletitionContacts()
+{
+    // check if all contact numbers are set
+    if(!start_sms_number.isEmpty() &&
+       !stat_sms_number.isEmpty() &&
+       !alarm_sms_number.isEmpty() &&
+       !proto_sms_number.isEmpty() &&
+       !call_number_1.isEmpty() &&
+       !call_number_2.isEmpty() &&
+       !call_number_3.isEmpty() &&
+       !call_number_4.isEmpty()) return true;
+    else return false;
+
+    return false;
 }
 
 void MainWindow::updateRolesListWidget()
@@ -620,6 +657,171 @@ void MainWindow::updateItemLBCorner()
     rect->updateData();
 }
 
+void MainWindow::exportDataSlot()
+{
+    if(!checkCompletitionTreeItems())
+    {
+        QMessageBox::warning(this, tr("List linking not complete"), tr("Some items in roles list are still not correctly linked with image.\n"
+                                                                       "Please, complete the linking before export can begin..."), QMessageBox::Ok);
+    }
+    else if(!checkCompletitionContacts())
+    {
+        QMessageBox::warning(this, tr("Contacts not filled"), tr("You must fill all contact fields (tel. numbers) before export."), QMessageBox::Ok);
+    }
+    else
+    {
+        // select directory to extract all data
+        QString path = QFileDialog::getExistingDirectory(this, tr("Select directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+
+        // if user clicked cancel button
+        if(path.isEmpty()) return;
+
+        // find new name for new dir at given path
+        QString targetDirName(createDirName(path));
+
+        // now target dir name contains original dir name which is not present at path, we can create empty structure
+        path.append(QString("/")+targetDirName);
+        QDir givenPath(path);
+        givenPath.mkpath("CFG_CONTENT");
+        givenPath.mkpath("SD_CONTENT/BMP");
+        givenPath.mkpath("SD_CONTENT/SOUND");
+
+        // now all neccessary folder are present, we can start export to the text files
+
+        // call_nums.txt
+        QFile call_nums(path+"/CFG_CONTENT/call_nums.txt");
+        call_nums.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * call_nums_stream = new QTextStream(&call_nums);
+        *call_nums_stream << "call number 1: " << call_number_1 << endl;
+        *call_nums_stream << "call number 2: " << call_number_2 << endl;
+        *call_nums_stream << "call number 3: " << call_number_3 << endl;
+        *call_nums_stream << "call number 4: " << call_number_4 << endl;
+        call_nums.close();
+        delete call_nums_stream;
+
+        // settings.txt
+        QFile settings(path+"/CFG_CONTENT/settings.txt");
+        settings.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * settings_stream = new QTextStream(&settings);
+        *settings_stream << "#value in units" << endl << "period: " << period << endl << endl;
+        *settings_stream << "#units of period: mins, hours, days, months" << endl << "per_units: " << per_units << endl << endl;
+        *settings_stream << "#ENG, SVK, PLN, HUN, GER, CZE" << endl << "language: " << lan << endl << endl;
+        *settings_stream << "#YES,NO" << endl << "ack banel error: " << (ack_banel_error ? "YES" : "NO") << endl << endl;
+        *settings_stream << "#value in dB: -24,-18, -12, -6, 0" << endl << "volume: " << volume << endl << endl;
+        settings.close();
+        delete settings_stream;
+
+        // sms_alarm.txt
+        QFile sms_alarm(path+"/CFG_CONTENT/sms_alarm.txt");
+        sms_alarm.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * sms_alarm_stream = new QTextStream(&sms_alarm);
+        *sms_alarm_stream << alarm_sms_text;
+        sms_alarm.close();
+        delete sms_alarm_stream;
+
+        // sms_start.txt
+        QFile sms_start(path+"/CFG_CONTENT/sms_start.txt");
+        sms_start.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * sms_start_stream = new QTextStream(&sms_start);
+        *sms_start_stream << start_sms_text;
+        sms_start.close();
+        delete sms_start_stream;
+
+        // sms_stat.txt
+        QFile sms_stat(path+"/CFG_CONTENT/sms_stat.txt");
+        sms_stat.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * sms_stat_stream = new QTextStream(&sms_stat);
+        *sms_stat_stream << stat_sms_text;
+        sms_stat.close();
+        delete sms_stat_stream;
+
+        // sms_proto.txt
+        QFile sms_proto(path+"/CFG_CONTENT/sms_proto.txt");
+        sms_proto.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * sms_proto_stream = new QTextStream(&sms_proto);
+        *sms_proto_stream << proto_sms_text;
+        sms_proto.close();
+        delete sms_proto_stream;
+
+        // sms_nums.txt
+        QFile sms_nums(path+"/CFG_CONTENT/sms_nums.txt");
+        sms_nums.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * sms_nums_stream = new QTextStream(&sms_nums);
+        *sms_nums_stream << "start sms number: " << start_sms_number << endl;
+        *sms_nums_stream << "stat sms number: " << stat_sms_number << endl;
+        *sms_nums_stream << "alarm sms number: " << alarm_sms_number << endl;
+        *sms_nums_stream << "proto sms number: " << proto_sms_number << endl;
+        sms_nums.close();
+        delete sms_nums_stream;
+
+        // sms_send.txt
+        QFile sms_send(path+"/CFG_CONTENT/sms_send.txt");
+        sms_send.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * sms_send_stream = new QTextStream(&sms_send);
+        *sms_send_stream << "start sms send: " << (start_sms_enabled ? "YES" : "NO") << endl;
+        *sms_send_stream << "stat sms send: " << (stat_sms_enabled ? "YES" : "NO") << endl;
+        *sms_send_stream << "alarm sms send: " << (alarm_sms_enabled ? "YES" : "NO") << endl;
+        *sms_send_stream << "proto sms send: " << (proto_sms_enabled ? "YES" : "NO") << endl;
+        sms_send.close();
+        delete sms_send_stream;
+
+        // bmp_cfg.txt
+        QFile bmp_cfg(path+"/SD_CONTENT/bmp_cfg.txt");
+        bmp_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * bmp_cfg_stream = new QTextStream(&bmp_cfg);
+        for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+        {
+            // save image
+            QString role_code_final(QString("%1").arg((*it)->getImageRole(), 3, 10, QChar('0')));
+            QFile export_image(path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
+            export_image.open(QIODevice::WriteOnly);
+            (*it)->save(&export_image, "BMP");
+            // create record to config file
+            *bmp_cfg_stream << role_code_final << "    " << (int)((*it)->getLBCorner().x()) <<
+                            " " << (int)((*it)->getLBCorner().y()) << " " << "1" << "    " << (int)((*it)->getItemRotation()) << endl;
+        }
+        bmp_cfg.close();
+        delete bmp_cfg_stream;
+
+    }
+}
+
+QString MainWindow::createDirName(QString &path)
+{
+    QDirIterator directories(path, QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    QString targetDirName("EXPORT");
+
+    QRegExp dir_eq("(^EXPORT)");
+
+    QStringList similar_dir_names;
+
+    // go through all dirs and check if they match
+    while(directories.hasNext()){
+       if(dir_eq.indexIn(directories.fileName(), 0)==0)
+       {
+           similar_dir_names << directories.fileName();
+       }
+       directories.next();
+    }
+
+    // if list of similar names is empty there is nothing to do more (default dir name will be set)
+    if(similar_dir_names.isEmpty()) return targetDirName;
+
+    // now go through our local list and generate new EXPORT dir name
+    int i, indexor = 0;
+    for(i=0; i<similar_dir_names.count(); i++)
+    {
+        // if we found match, we will modify our dir name and return back to the beginning
+        if(similar_dir_names.at(i)==targetDirName)
+        {
+            targetDirName = QString("EXPORT(%1)").arg(++indexor);
+            i = 0;
+        }
+    }
+
+    return targetDirName;
+}
+
 void MainWindow::saveProfileSlot()
 {
     // save settings into ini file
@@ -682,6 +884,30 @@ void MainWindow::saveProfileSlot()
         setts.setValue("volume", volume);
         setts.endGroup();
 
+        // save sms texts and enabled/disabled states
+        setts.beginGroup("sms");
+        setts.setValue("startsmstext", start_sms_text);
+        setts.setValue("startsmsenabled", start_sms_enabled);
+        setts.setValue("statsmstext", stat_sms_text);
+        setts.setValue("statsmsenabled", stat_sms_enabled);
+        setts.setValue("alarmsmstext", alarm_sms_text);
+        setts.setValue("alarmsmsenabled", alarm_sms_number);
+        setts.setValue("protosmstext", proto_sms_text);
+        setts.setValue("protosmsenabled", proto_sms_enabled);
+        setts.endGroup();
+
+        // save the contacts
+        setts.beginGroup("contacts");
+        setts.setValue("callnum1", call_number_1);
+        setts.setValue("callnum2", call_number_2);
+        setts.setValue("callnum3", call_number_3);
+        setts.setValue("callnum4", call_number_4);
+        setts.setValue("startsmsnumber", start_sms_number);
+        setts.setValue("statsmsnumber", stat_sms_number);
+        setts.setValue("alarm_smsnumber", alarm_sms_number);
+        setts.setValue("protosmsnumber", proto_sms_number);
+        setts.endGroup();
+
         // save all paths to all images
         setts.beginGroup("elements");
         int index;
@@ -698,18 +924,6 @@ void MainWindow::saveProfileSlot()
             setts.setValue(QString("%1_BLCORNER_Y").arg(result_key), (*it)->getLBCorner().y());
             setts.setValue(QString("%1_ROTATION").arg(result_key), (int)((*it)->getItemRotation()));
         }
-        setts.endGroup();
-
-        // save the contacts
-        setts.beginGroup("contacts");
-        setts.setValue("callnum1", call_number_1);
-        setts.setValue("callnum2", call_number_2);
-        setts.setValue("callnum3", call_number_3);
-        setts.setValue("callnum4", call_number_4);
-        setts.setValue("startsmsnumber", start_sms_number);
-        setts.setValue("statsmsnumber", stat_sms_number);
-        setts.setValue("alarm_smsnumber", alarm_sms_number);
-        setts.setValue("protosmsnumber", proto_sms_number);
         setts.endGroup();
 
         something_changed = false;
@@ -764,6 +978,18 @@ void MainWindow::initFileLoaderWindow()
     togglePortraitLandscapeMode(true);
     toggleSingleMultipleImageMode(true);
 
+    // load sms data
+    section.clear();
+    section.append("sms");
+
+    start_sms_text = setts.value(QString("%1/startsmstext").arg(section), tr("The device is running...")).toString();
+    stat_sms_text = setts.value(QString("%1/statsmstext").arg(section), tr("Status of the device is:")).toString();
+    alarm_sms_text = setts.value(QString("%1/alarmsmstext").arg(section), tr("The device has a malfunction:")).toString();
+    proto_sms_text = setts.value(QString("%1/protosmstext").arg(section), tr("SMS protocol of device:")).toString();
+    start_sms_enabled = setts.value(QString("%1/startsmsenabled").arg(section), true).toBool();
+    stat_sms_enabled = setts.value(QString("%1/statsmsenabled").arg(section), true).toBool();
+    alarm_sms_enabled = setts.value(QString("%1/alarmsmsenabled").arg(section), true).toBool();
+    proto_sms_enabled = setts.value(QString("%1/protosmsenabled").arg(section), true).toBool();
 
     // load contacts
     section.clear();
@@ -838,6 +1064,13 @@ void MainWindow::contactDataWindow()
 void MainWindow::mainCfgWindow()
 {
     mainCFGDialog dialog(&period, &per_units, &lan, &ack_banel_error, &volume, this);
+    dialog.exec();
+}
+
+void MainWindow::smsContentsWindow()
+{
+    smsContentsDialog dialog(&start_sms_enabled, &stat_sms_enabled, &alarm_sms_enabled, &proto_sms_enabled,
+                             &start_sms_text, &stat_sms_text, &alarm_sms_text, &proto_sms_text, this);
     dialog.exec();
 }
 

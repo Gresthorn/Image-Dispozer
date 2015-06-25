@@ -64,19 +64,19 @@ void contactDataDialog::accepted()
     }
     if(!ui->callNumEdit1->text().isEmpty())
     {
-        if(t_number.indexIn(ui->startSmsEdit->text(), 0)!=0) message.append(tr("Call number 1 is incorrect.\n"));
+        if(t_number.indexIn(ui->callNumEdit1->text(), 0)!=0) message.append(tr("Call number 1 is incorrect.\n"));
     }
     if(!ui->callNumEdit2->text().isEmpty())
     {
-        if(t_number.indexIn(ui->statusSmsEdit->text(), 0)!=0) message.append(tr("Call number 2 is incorrect.\n"));
+        if(t_number.indexIn(ui->callNumEdit2->text(), 0)!=0) message.append(tr("Call number 2 is incorrect.\n"));
     }
     if(!ui->callNumEdit3->text().isEmpty())
     {
-        if(t_number.indexIn(ui->alarmSmsEdit->text(), 0)!=0) message.append(tr("Call number 3 is incorrect.\n"));
+        if(t_number.indexIn(ui->callNumEdit3->text(), 0)!=0) message.append(tr("Call number 3 is incorrect.\n"));
     }
     if(!ui->callNumEdit4->text().isEmpty())
     {
-        if(t_number.indexIn(ui->protocolSmsEdit->text(), 0)!=0) message.append(tr("Call number 4 is incorrect.\n"));
+        if(t_number.indexIn(ui->callNumEdit4->text(), 0)!=0) message.append(tr("Call number 4 is incorrect.\n"));
     }
 
     // if some errors occured we will abandon closing sequence
