@@ -86,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lan = QString("ENG");
 
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
+    connect(ui->actionSounds, SIGNAL(triggered()), this, SLOT(soundSelectorWindow()));
     connect(ui->actionOpen_profile, SIGNAL(triggered()), this, SLOT(initFileLoaderWindow()));
     connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(saveProfileSlot()));
     connect(ui->actionSave_As, SIGNAL(triggered()), this, SLOT(saveAsProfileSlot()));
@@ -115,68 +116,112 @@ void MainWindow::initializeTreeItems()
 {
     rolesList = new QVector<roleString * >;
     imageItems = new QList<image_handler * >;
+    soundItems = new QList<sound_handler * >;
     importedImages = new QStringList;
+    importedSounds = new QStringList;
+    rolesList2 = new QVector<roleString * >;
 
     // fill the rolesList with relevant items
     // NOTE that roleList is not allowed to be modified elsewhere in the program.
     // If more items are needed, they are supposed to be added HERE.
-    rolesList->append(new roleString("Element \" 0\"", 0));
-    rolesList->append(new roleString("Element \" 1\"", 1));
-    rolesList->append(new roleString("Element \" 2\"", 2));
-    rolesList->append(new roleString("Element \" 3\"", 3));
-    rolesList->append(new roleString("Element \" 4\"", 4));
-    rolesList->append(new roleString("Element \" 5\"", 5));
-    rolesList->append(new roleString("Element \" 6\"", 6));
-    rolesList->append(new roleString("Element \" 7\"", 7));
-    rolesList->append(new roleString("Element \" 8\"", 8));
-    rolesList->append(new roleString("Element \" 9\"", 9));
-    rolesList->append(new roleString("Element \"10\"", 10));
-    rolesList->append(new roleString("Element \"11\"", 11));
-    rolesList->append(new roleString("Element \"12\"", 12));
-    rolesList->append(new roleString("Element \"13\"", 13));
-    rolesList->append(new roleString("Element \"14\"", 14));
-    rolesList->append(new roleString("Element \"15\"", 15));
-    rolesList->append(new roleString("Element \"16\"", 16));
-    rolesList->append(new roleString("Element \"17\"", 17));
-    rolesList->append(new roleString("Element \"18\"", 18));
-    rolesList->append(new roleString("Element \"19\"", 19));
-    rolesList->append(new roleString("Element \"20\"", 20));
+    rolesList->append(new roleString("Image \" 0\"", 0));
+    rolesList->append(new roleString("Image \" 1\"", 1));
+    rolesList->append(new roleString("Image \" 2\"", 2));
+    rolesList->append(new roleString("Image \" 3\"", 3));
+    rolesList->append(new roleString("Image \" 4\"", 4));
+    rolesList->append(new roleString("Image \" 5\"", 5));
+    rolesList->append(new roleString("Image \" 6\"", 6));
+    rolesList->append(new roleString("Image \" 7\"", 7));
+    rolesList->append(new roleString("Image \" 8\"", 8));
+    rolesList->append(new roleString("Image \" 9\"", 9));
+    rolesList->append(new roleString("Image \"10\"", 10));
+    rolesList->append(new roleString("Image \"11\"", 11));
+    rolesList->append(new roleString("Image \"12\"", 12));
+    rolesList->append(new roleString("Image \"13\"", 13));
+    rolesList->append(new roleString("Image \"14\"", 14));
+    rolesList->append(new roleString("Image \"15\"", 15));
+    rolesList->append(new roleString("Image \"16\"", 16));
+    rolesList->append(new roleString("Image \"17\"", 17));
+    rolesList->append(new roleString("Image \"18\"", 18));
+    rolesList->append(new roleString("Image \"19\"", 19));
+    rolesList->append(new roleString("Image \"20\"", 20));
 
-    rolesList->append(new roleString("Element \"-1\"", 21));
-    rolesList->append(new roleString("Element \"-2\"", 22));
-    rolesList->append(new roleString("Element \"-3\"", 23));
-    rolesList->append(new roleString("Element \"-4\"", 24));
-    rolesList->append(new roleString("Element \"-5\"", 25));
-    rolesList->append(new roleString("Element \"-6\"", 26));
-    rolesList->append(new roleString("Element \"-7\"", 27));
-    rolesList->append(new roleString("Element \"-8\"", 28));
-    rolesList->append(new roleString("Element \"-9\"", 29));
+    rolesList->append(new roleString("Image \"-1\"", 21));
+    rolesList->append(new roleString("Image \"-2\"", 22));
+    rolesList->append(new roleString("Image \"-3\"", 23));
+    rolesList->append(new roleString("Image \"-4\"", 24));
+    rolesList->append(new roleString("Image \"-5\"", 25));
+    rolesList->append(new roleString("Image \"-6\"", 26));
+    rolesList->append(new roleString("Image \"-7\"", 27));
+    rolesList->append(new roleString("Image \"-8\"", 28));
+    rolesList->append(new roleString("Image \"-9\"", 29));
 
-    rolesList->append(new roleString("Element \"(empty)\"", 40));
-    rolesList->append(new roleString("Element \" A\"", 41));
-    rolesList->append(new roleString("Element \"A1\"", 42));
-    rolesList->append(new roleString("Element \" B\"", 43));
-    rolesList->append(new roleString("Element \" E\"", 44));
-    rolesList->append(new roleString("Element \"E1\"", 45));
-    rolesList->append(new roleString("Element \" G\"", 46));
-    rolesList->append(new roleString("Element \"G1\"", 47));
-    rolesList->append(new roleString("Element \" F\"", 48));
-    rolesList->append(new roleString("Element \" N\"", 49));
-    rolesList->append(new roleString("Element \"SA\"", 50));
-    rolesList->append(new roleString("Element \"SS\"", 51));
-    rolesList->append(new roleString("Element \"S1\"", 52));
-    rolesList->append(new roleString("Element \" R\"", 53));
-    rolesList->append(new roleString("Element \" P\"", 54));
-    rolesList->append(new roleString("Element \" H\"", 55));
-    rolesList->append(new roleString("Element \"--\"", 56));
+    rolesList->append(new roleString("Image \"(empty)\"", 40));
+    rolesList->append(new roleString("Image \" A\"", 41));
+    rolesList->append(new roleString("Image \"A1\"", 42));
+    rolesList->append(new roleString("Image \" B\"", 43));
+    rolesList->append(new roleString("Image \" E\"", 44));
+    rolesList->append(new roleString("Image \"E1\"", 45));
+    rolesList->append(new roleString("Image \" G\"", 46));
+    rolesList->append(new roleString("Image \"G1\"", 47));
+    rolesList->append(new roleString("Image \" F\"", 48));
+    rolesList->append(new roleString("Image \" N\"", 49));
+    rolesList->append(new roleString("Image \"SA\"", 50));
+    rolesList->append(new roleString("Image \"SS\"", 51));
+    rolesList->append(new roleString("Image \"S1\"", 52));
+    rolesList->append(new roleString("Image \" R\"", 53));
+    rolesList->append(new roleString("Image \" P\"", 54));
+    rolesList->append(new roleString("Image \" H\"", 55));
+    rolesList->append(new roleString("Image \"--\"", 56));
 
-    rolesList->append(new roleString("Element \"RV\"", 62));
+    rolesList->append(new roleString("Image \"RV\"", 62));
+
+    // fill the rolesList2 (sounds) with relevant items
+    // NOTE that roleList2 is not allowed to be modified elsewhere in the program.
+    // If more items are needed, they are supposed to be added HERE.
+    rolesList2->append(new roleString("Sound \" 0\"", 0));
+    rolesList2->append(new roleString("Sound \" 1\"", 1));
+    rolesList2->append(new roleString("Sound \" 2\"", 2));
+    rolesList2->append(new roleString("Sound \" 3\"", 3));
+    rolesList2->append(new roleString("Sound \" 4\"", 4));
+    rolesList2->append(new roleString("Sound \" 5\"", 5));
+    rolesList2->append(new roleString("Sound \" 6\"", 6));
+    rolesList2->append(new roleString("Sound \" 7\"", 7));
+    rolesList2->append(new roleString("Sound \" 8\"", 8));
+    rolesList2->append(new roleString("Sound \" 9\"", 9));
+    rolesList2->append(new roleString("Sound \"10\"", 10));
+    rolesList2->append(new roleString("Sound \"11\"", 11));
+    rolesList2->append(new roleString("Sound \"12\"", 12));
+    rolesList2->append(new roleString("Sound \"13\"", 13));
+    rolesList2->append(new roleString("Sound \"14\"", 14));
+    rolesList2->append(new roleString("Sound \"15\"", 15));
+    rolesList2->append(new roleString("Sound \"16\"", 16));
+    rolesList2->append(new roleString("Sound \"17\"", 17));
+    rolesList2->append(new roleString("Sound \"18\"", 18));
+    rolesList2->append(new roleString("Sound \"19\"", 19));
+    rolesList2->append(new roleString("Sound \"20\"", 20));
+    rolesList2->append(new roleString("Sound \"-1\"", 21));
+    rolesList2->append(new roleString("Sound \"-2\"", 22));
+    rolesList2->append(new roleString("Sound \"-3\"", 23));
+    rolesList2->append(new roleString("Sound \"-4\"", 24));
+    rolesList2->append(new roleString("Sound \"gong\"", 70));
+    rolesList2->append(new roleString("Sound \"over loaded\"", 80));
+    rolesList2->append(new roleString("Sound \"moving up\"", 82));
+    rolesList2->append(new roleString("Sound \"moving down\"", 83));
+    rolesList2->append(new roleString("Sound \"closing\"", 90));
+    rolesList2->append(new roleString("Sound \"opening\"", 91));
 
     // now all items are unlinked, add each item into unlinkedItems vector
     for(int i = 0; i<rolesList->size(); i++)
     {
         imageItems->append(new image_handler(QString(), rolesList->at(i)->getRoleCode(), i));
         imageItems->last()->setPosition(QPointF(100.0, 100.0));
+    }
+
+    // now all items are unlinked, add each item into unlinkedItems vector
+    for(int i = 0; i<rolesList2->size(); i++)
+    {
+        soundItems->append(new sound_handler(QString(), rolesList2->at(i)->getRoleCode(), i));
     }
 
     updateRolesListWidget();
@@ -257,6 +302,16 @@ void MainWindow::imageSelectorWindow()
 
     // if user did not clicked cancel, we will believe that something was updated
     if(ok) somethingChangedSlot();
+}
+
+void MainWindow::soundSelectorWindow()
+{
+    // create dialog window for selecting and linking images to their appropriate roles
+    bool ok;
+    SoundSelector snd_select_window(rolesList2, soundItems, importedSounds, &ok, this);
+    snd_select_window.exec();
+
+    this->centralWidget()->setFocusPolicy(Qt::StrongFocus);
 }
 
 void MainWindow::displayNewRectItem(int row)
@@ -773,9 +828,10 @@ void MainWindow::exportDataSlot()
         {
             // save image
             QString role_code_final(QString("%1").arg((*it)->getImageRole(), 3, 10, QChar('0')));
+            //QFile::copy((*it)->imagePath,path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
             QFile export_image(path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
-            export_image.open(QIODevice::WriteOnly);
-            (*it)->save(&export_image, "BMP");
+            QImage export_img = (*it)->toImage().convertToFormat(QImage::Format_RGB16);
+            export_img.save(&export_image, "BMP", 0);
             // create record to config file
             *bmp_cfg_stream << role_code_final << "    " << (int)((*it)->getLBCorner().x()) <<
                             " " << (int)((*it)->getLBCorner().y()) << " " << "1" << "    " << (int)((*it)->getItemRotation()) << endl;
@@ -1022,7 +1078,8 @@ void MainWindow::initFileLoaderWindow()
     for(QList<image_handler * >::iterator it = imageItems->begin(); it!=imageItems->end(); it++)
     {
         index = (*it)->getIndex();
-        QString result_key = rolesList->at(index)->replace(" ", "").replace("\"", "");
+        QString result_key = *rolesList->at(index);
+        result_key.replace(" ", "").replace("\"", "");
         // generate result group/key string and load data
         QString img_path = setts.value(QString("%1/%2_IMAGE_PATH").arg(section).arg(result_key), "").toString();
         qreal w = setts.value(QString("%1/%2_SIZE_W").arg(section).arg(result_key), 100.0).toDouble();
@@ -1045,6 +1102,7 @@ void MainWindow::initFileLoaderWindow()
         (*it)->setPosition(QPointF(x, y));
         (*it)->setLBCorner(QPointF(lbx, lby));
         (*it)->setItemRotation(rot);
+        (*it)->setTempImagePath(img_path);
     }
 
     // update items that have correctly loaded images

@@ -22,16 +22,18 @@
 #include <QFile>
 #include <QThread>
 #include <QRegExp>
+#include <QImageIOHandler>
 
 #include "manualdatainput.h"
 #include "imageselector.h"
+#include "soundselector.h"
 #include "image_handler.h"
+#include "sound_handler.h"
 #include "rolestring.h"
 #include "imageview.h"
 #include "imagescene.h"
 #include "borderrect.h"
 #include "infolabel.h"
-#include "versions.h"
 #include "contactdatadialog.h"
 #include "maincfgdialog.h"
 #include "smscontentsdialog.h"
@@ -69,9 +71,12 @@ private:
     multiple_image_mode image_mode;
 
     QList<image_handler * > * imageItems;
+    QList<sound_handler * > * soundItems;
     QList<resizeRect * > * displayedItems;
     QStringList * importedImages;
+    QStringList * importedSounds;
     QVector<roleString * > * rolesList;
+    QVector<roleString * > * rolesList2;
 
     const unsigned int item_opaque_animation_delay;
     const unsigned int border_resize_animation_delay;
@@ -130,6 +135,7 @@ protected:
 public slots:
     void removeAllDisplayedItems(void);
     void imageSelectorWindow(void);
+    void soundSelectorWindow(void);
     void initFileLoaderWindow(void);
     void contactDataWindow(void);
     void mainCfgWindow(void);

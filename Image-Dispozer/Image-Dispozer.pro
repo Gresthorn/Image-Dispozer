@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui multimedia
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,7 +25,9 @@ SOURCES += main.cpp\
     manualdatainput.cpp \
     contactdatadialog.cpp \
     maincfgdialog.cpp \
-    smscontentsdialog.cpp
+    smscontentsdialog.cpp \
+    sound_handler.cpp \
+    soundselector.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -39,13 +41,16 @@ HEADERS  += mainwindow.h \
     manualdatainput.h \
     contactdatadialog.h \
     maincfgdialog.h \
-    smscontentsdialog.h
+    smscontentsdialog.h \
+    sound_handler.h \
+    soundselector.h
 
 FORMS    += mainwindow.ui \
     imageselector.ui \
     contactdatadialog.ui \
     maincfgdialog.ui \
-    smscontentsdialog.ui
+    smscontentsdialog.ui \
+    soundselector.ui
 
 RESOURCES += \
     icons.qrc

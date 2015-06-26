@@ -475,7 +475,6 @@
     <property name="title">
      <string>File</string>
     </property>
-    <addaction name="actionImport"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_profile"/>
     <addaction name="actionSave"/>
@@ -492,13 +491,21 @@
     <addaction name="actionContact_data"/>
     <addaction name="actionSms_contents"/>
    </widget>
+   <widget class="QMenu" name="menuManage">
+    <property name="title">
+     <string>Manage</string>
+    </property>
+    <addaction name="actionImport"/>
+    <addaction name="actionSounds"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuManage"/>
    <addaction name="menuSettings"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionImport">
    <property name="text">
-    <string>Manage roles</string>
+    <string>Images</string>
    </property>
   </action>
   <action name="actionClose">
@@ -539,6 +546,11 @@
   <action name="actionExport">
    <property name="text">
     <string>Export</string>
+   </property>
+  </action>
+  <action name="actionSounds">
+   <property name="text">
+    <string>Sounds</string>
    </property>
   </action>
  </widget>
