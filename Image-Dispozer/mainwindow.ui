@@ -498,9 +498,37 @@
     <addaction name="actionImport"/>
     <addaction name="actionSounds"/>
    </widget>
+   <widget class="QMenu" name="menuSettings_2">
+    <property name="title">
+     <string>Settings</string>
+    </property>
+    <widget class="QMenu" name="menuResolution">
+     <property name="title">
+      <string>Resolution</string>
+     </property>
+     <addaction name="action240_x_320"/>
+     <addaction name="action320_x_480"/>
+    </widget>
+    <widget class="QMenu" name="menuImage_objects">
+     <property name="title">
+      <string>Image objects</string>
+     </property>
+     <addaction name="actionOrthogonal_rotation"/>
+     <addaction name="actionResizable_objects"/>
+    </widget>
+    <addaction name="menuResolution"/>
+    <addaction name="menuImage_objects"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuManage"/>
    <addaction name="menuSettings"/>
+   <addaction name="menuSettings_2"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionImport">
@@ -551,6 +579,44 @@
   <action name="actionSounds">
    <property name="text">
     <string>Sounds</string>
+   </property>
+  </action>
+  <action name="action240_x_320">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>240 x 320</string>
+   </property>
+  </action>
+  <action name="action320_x_480">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>320 x 480</string>
+   </property>
+  </action>
+  <action name="actionOrthogonal_rotation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Orthogonal rotation</string>
+   </property>
+  </action>
+  <action name="actionResizable_objects">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Resizable objects</string>
    </property>
   </action>
  </widget>

@@ -21,12 +21,12 @@ MainWindow::MainWindow(QWidget *parent) :
     scene->setBackgroundBrush(QBrush(QColor(36, 38, 41), Qt::SolidPattern));
     image_mode = SINGLE;
     view = new imageView(scene, this);
-    view->setOrthogonalRotation(false);
+    view->setOrthogonalRotation(true);
     // add border to the scene
-    ratio_mode = LANDSCAPE;
+    ratio_mode = PORTRAIT;
     resize_on_ratio_change = reposition_on_ratio_change = true;
-    hSize = 320;
-    vSize = 240;
+    hSize = 240;
+    vSize = 320;
 
     // here initial scale is being calculated/set
     qreal init_scale = 1.8;
@@ -94,6 +94,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMain_CFG, SIGNAL(triggered()), this, SLOT(mainCfgWindow()));
     connect(ui->actionSms_contents, SIGNAL(triggered()), this, SLOT(smsContentsWindow()));
     connect(ui->actionExport, SIGNAL(triggered()), this, SLOT(exportDataSlot()));
+    connect(ui->action240_x_320, SIGNAL(triggered(bool)), this, SLOT(resolutionChangedSlot(bool)));
+    connect(ui->action320_x_480, SIGNAL(triggered(bool)), this, SLOT(resolutionChangedSlot(bool)));
+    connect(ui->actionOrthogonal_rotation, SIGNAL(triggered(bool)), this, SLOT(toggleOrthogonalRotation(bool)));
+    connect(ui->actionResizable_objects, SIGNAL(toggled(bool)), this, SLOT(toggleResizableItems(bool)));
 
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
@@ -229,13 +233,31 @@ void MainWindow::initializeTreeItems()
     displayedItems = new QList<resizeRect * >;
 }
 
-bool MainWindow::checkCompletitionTreeItems()
+bool MainWindow::checkCompletitionImageItems()
 {
     // go throught all items and check if images are correctly set
     for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
     {
         if(!(*it)->isFileCorrect()) return false;
     }
+
+    return true;
+}
+
+bool MainWindow::checkCompletitionSoundsItems(QString * error_filepaths)
+{
+    error_filepaths->clear();
+
+    // go throught all items and check if images are correctly set
+    for(QList<sound_handler * >::iterator it=soundItems->begin(); it!=soundItems->end(); it++)
+    {
+        if((*it)->getSoundPath().isEmpty()) return false; // any of sounds cannot be empty
+
+        QFileInfo f_info((*it)->getSoundPath());
+        if(!f_info.exists()) error_filepaths->append(f_info.filePath()+"\n");
+    }
+
+    if(!error_filepaths->isEmpty()) return false;
 
     return true;
 }
@@ -427,6 +449,65 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
     scene->update();
 }
 
+void MainWindow::resolutionChangedSlot(bool toggled)
+{
+    // find out, who emitted signal
+    QAction * resolutionAction = static_cast<QAction * >(sender());
+
+    if(!toggled) resolutionAction->setChecked(true);
+
+    if(resolutionAction==ui->action240_x_320)
+    {
+        ui->action320_x_480->setChecked(false);
+
+        if((vSize==240 && hSize==320) || (vSize==320 && hSize==240)) return; // we already are in required resolution mode
+        else
+        {
+            // set new resolution
+            if(ratio_mode==LANDSCAPE)
+            {
+                vSize = 240;
+                hSize = 320;
+            }
+            else
+            {
+                vSize = 320;
+                hSize = 240;
+            }
+        }
+    }
+    else if(resolutionAction==ui->action320_x_480)
+    {
+        // bigger screen resolution
+        ui->action240_x_320->setChecked(false);
+
+        if((vSize==480 && hSize==320) || (vSize==320 && hSize==480)) return; // we already are in required resolution mode
+        else
+        {
+            // set new resolution
+            if(ratio_mode==LANDSCAPE)
+            {
+                vSize = 320;
+                hSize = 480;
+            }
+            else
+            {
+                vSize = 480;
+                hSize = 320;
+            }
+        }
+    }
+    else
+    {
+        // default action in unpredicted case
+        ui->action240_x_320->setChecked(true);
+        vSize = 320;
+        hSize = 240;
+    }
+
+    togglePortraitLandscapeMode(true);
+}
+
 void MainWindow::toggleSingleMultipleImageMode(bool just_update)
 {
     if(image_mode==SINGLE)
@@ -444,6 +525,16 @@ void MainWindow::toggleSingleMultipleImageMode(bool just_update)
         // if going to single mode, we need to delete all objects in scene currently visible
         removeAllDisplayedItems();
     }
+}
+
+void MainWindow::toggleOrthogonalRotation(bool toggle)
+{
+    view->setOrthogonalRotation(toggle);
+}
+
+void MainWindow::toggleResizableItems(bool toggle)
+{
+    scene->setResizableItems(toggle);
 }
 
 void MainWindow::saveSelectedItemData(image_handler *data)
@@ -714,9 +805,23 @@ void MainWindow::updateItemLBCorner()
 
 void MainWindow::exportDataSlot()
 {
-    if(!checkCompletitionTreeItems())
+    QString error_sound_paths; // catch missing sound files so they can be displayed for users as notification
+
+    if(!checkCompletitionSoundsItems(&error_sound_paths))
     {
-        QMessageBox::warning(this, tr("List linking not complete"), tr("Some items in roles list are still not correctly linked with image.\n"
+        if(error_sound_paths.isEmpty())
+        {
+            QMessageBox::warning(this, tr("List linking not complete (sounds)"), tr("Some items in roles list are still not correctly linked with sound file.\n"
+                                                                           "Please, complete the linking before export can begin..."), QMessageBox::Ok);
+        }
+        else
+        {
+            QMessageBox::warning(this, tr("Missing sound files"), tr("The following sound files could not be found.\n\n")+error_sound_paths, QMessageBox::Ok);
+        }
+    }
+    else if(!checkCompletitionImageItems())
+    {
+        QMessageBox::warning(this, tr("List linking not complete (images)"), tr("Some items in roles list are still not correctly linked with image.\n"
                                                                        "Please, complete the linking before export can begin..."), QMessageBox::Ok);
     }
     else if(!checkCompletitionContacts())
@@ -982,6 +1087,17 @@ void MainWindow::saveProfileSlot()
         }
         setts.endGroup();
 
+        // save all paths to all sounds
+        setts.beginGroup("sounds");
+        for(QList<sound_handler * >::iterator it = soundItems->begin(); it!=soundItems->end(); it++)
+        {
+            index = (*it)->getIndex();
+            QString result_key = rolesList2->at(index)->replace(" ", "").replace("\"", "");
+            setts.setValue(QString("%1_SOUND_PATH").arg(result_key), (*it)->getSoundPath().isEmpty() ? "none" : (*it)->getSoundPath());
+            setts.setValue(QString("%1_VOLUME").arg(result_key), (int)((*it)->getVolumeLevel()));
+        }
+        setts.endGroup();
+
         something_changed = false;
     }
 }
@@ -1098,11 +1214,33 @@ void MainWindow::initFileLoaderWindow()
 
         // now update appropriate image handler with loaded values
         (*it)->setImage(img_path);
+        (*it)->setTempImagePath(img_path);
         (*it)->setItemSize(QSizeF(w, h));
         (*it)->setPosition(QPointF(x, y));
         (*it)->setLBCorner(QPointF(lbx, lby));
         (*it)->setItemRotation(rot);
-        (*it)->setTempImagePath(img_path);
+    }
+
+    // READING SOUNDS SECTION OF DATA
+    section.clear();
+    section.append("sounds");
+
+    for(QList<sound_handler * >::iterator it = soundItems->begin(); it!=soundItems->end(); it++)
+    {
+        index = (*it)->getIndex();
+        QString result_key = *rolesList2->at(index);
+        result_key.replace(" ", "").replace("\"", "");
+        // generate result group/key string and load data
+        QString snd_path = setts.value(QString("%1/%2_SOUND_PATH").arg(section).arg(result_key), "").toString();
+        int volume = setts.value(QString("%1/%2_VOLUME").arg(section).arg(result_key), 50).toInt();
+
+        // DO SOME CORRECTIONS OR CHECKS IF NEEDED
+        if(snd_path=="none") snd_path.clear(); // if none statement is present, we will set empty string
+
+        // now update appropriate image handler with loaded values
+        (*it)->setSoundPath(snd_path);
+        (*it)->setTempSoundPath(snd_path);
+        (*it)->setVolumeLevel(volume);
     }
 
     // update items that have correctly loaded images

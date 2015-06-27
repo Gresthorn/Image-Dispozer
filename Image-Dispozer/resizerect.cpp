@@ -239,12 +239,18 @@ void resizeRect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
 {
     QPointF ePos = event->pos();
 
-    if(isNearAt(ePos, topLeft) || isNearAt(ePos, bottomRight)) QApplication::setOverrideCursor(QCursor(Qt::SizeFDiagCursor));
-    else if(isNearAt(ePos, topRight) || isNearAt(ePos, bottomLeft)) QApplication::setOverrideCursor(QCursor(Qt::SizeBDiagCursor));
-    else if(isNearAt(ePos, QPointF(0.0, height/2.0))
-             || isNearAt(ePos, QPointF(0.0, -height/2.0))) QApplication::setOverrideCursor(QCursor(Qt::SizeVerCursor));
-    else if(isNearAt(ePos, QPointF(width/2.0, 0.0))
-             || isNearAt(ePos, QPointF(-width/2.0, 0.0))) QApplication::setOverrideCursor(QCursor(Qt::SizeHorCursor));
+    imageScene * scene = static_cast<imageScene * >(this->scene());
+
+    if(scene->getResizableItems())
+    {
+        if(isNearAt(ePos, topLeft) || isNearAt(ePos, bottomRight)) QApplication::setOverrideCursor(QCursor(Qt::SizeFDiagCursor));
+        else if(isNearAt(ePos, topRight) || isNearAt(ePos, bottomLeft)) QApplication::setOverrideCursor(QCursor(Qt::SizeBDiagCursor));
+        else if(isNearAt(ePos, QPointF(0.0, height/2.0))
+                 || isNearAt(ePos, QPointF(0.0, -height/2.0))) QApplication::setOverrideCursor(QCursor(Qt::SizeVerCursor));
+        else if(isNearAt(ePos, QPointF(width/2.0, 0.0))
+                 || isNearAt(ePos, QPointF(-width/2.0, 0.0))) QApplication::setOverrideCursor(QCursor(Qt::SizeHorCursor));
+        else QApplication::setOverrideCursor(QCursor(Qt::CrossCursor));
+    }
     else QApplication::setOverrideCursor(QCursor(Qt::CrossCursor));
 
     QGraphicsItem::hoverMoveEvent(event);
@@ -400,14 +406,20 @@ void resizeRect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 
     QPointF ePos = event->pos();
 
-    if(isNearAt(ePos, topLeft)) resize = TOPLEFT;
-    else if(isNearAt(ePos, bottomRight)) resize = BOTTOMRIGHT;
-    else if(isNearAt(ePos, topRight)) resize = TOPRIGHT;
-    else if(isNearAt(ePos, bottomLeft)) resize = BOTTOMLEFT;
-    else if(isNearAt(ePos, QPointF(0.0, height/2.0))) resize = TOP;
-    else if(isNearAt(ePos, QPointF(0.0, -height/2.0))) resize = BOTTOM;
-    else if(isNearAt(ePos, QPointF(width/2.0, 0.0))) resize = RIGHT;
-    else if(isNearAt(ePos, QPointF(-width/2.0, 0.0))) resize = LEFT;
+    imageScene * scene = static_cast<imageScene * >(this->scene());
+
+    if(scene->getResizableItems())
+    {
+        if(isNearAt(ePos, topLeft)) resize = TOPLEFT;
+        else if(isNearAt(ePos, bottomRight)) resize = BOTTOMRIGHT;
+        else if(isNearAt(ePos, topRight)) resize = TOPRIGHT;
+        else if(isNearAt(ePos, bottomLeft)) resize = BOTTOMLEFT;
+        else if(isNearAt(ePos, QPointF(0.0, height/2.0))) resize = TOP;
+        else if(isNearAt(ePos, QPointF(0.0, -height/2.0))) resize = BOTTOM;
+        else if(isNearAt(ePos, QPointF(width/2.0, 0.0))) resize = RIGHT;
+        else if(isNearAt(ePos, QPointF(-width/2.0, 0.0))) resize = LEFT;
+        else resize = NONE;
+    }
     else resize = NONE;
 
     QGraphicsItem::mousePressEvent(event);

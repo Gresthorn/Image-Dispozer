@@ -273,7 +273,7 @@ void SoundSelector::unlinkSelectedItems()
 void SoundSelector::loadSelectedSounds()
 {
     QStringList selectedFiles = QFileDialog::getOpenFileNames(this, tr("Select sounds to load"), QDir::currentPath(),
-                                                                QString("Image files (*.wav *.mp3)"));
+                                                                QString("Image files (*.wav)"));
     // if user clicks cancel, or selects no items
     if(selectedFiles.isEmpty()) return;
 
@@ -303,9 +303,9 @@ void SoundSelector::loadSoundsFromDir()
     QDirIterator it(selected_dir.path(), QDir::Files, QDirIterator::NoIteratorFlags);
     while(it.hasNext())
     {
-        // check if is sound in format wav or mp3
+        // check if is sound in format wav
         QFileInfo file(it.next());
-        if(file.suffix()=="mp3" || file.suffix()=="wav")
+        if(file.suffix()=="wav")
         {
             // file is sound, so we can add it to the imported list
             QListWidgetItem * item = new QListWidgetItem(file.fileName());
@@ -361,7 +361,7 @@ void SoundSelector::soundListWasClicked(void)
 
             QMessageBox::warning(this, tr("Sound could not be loaded"),
                                   tr("The selected sound could not be loaded. Check if the sound is still availible on "
-                                     "your disk or is in correct format (wav, mp3)."), QMessageBox::Ok);
+                                     "your disk or is in correct format (wav)."), QMessageBox::Ok);
         }
     }
 }

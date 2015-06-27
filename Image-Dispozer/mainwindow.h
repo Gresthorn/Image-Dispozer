@@ -84,8 +84,8 @@ private:
 
     imageScene * scene;
     imageView * view;
-    qreal hSize;
-    qreal vSize;
+    int hSize;
+    int vSize;
     qreal offset;
 
     borderRect * borderRectangle;
@@ -121,7 +121,8 @@ private:
     int volume;
 
     void initializeTreeItems(void);
-    bool checkCompletitionTreeItems(void);
+    bool checkCompletitionImageItems(void);
+    bool checkCompletitionSoundsItems(QString * error_filepaths);
     bool checkCompletitionContacts(void);
     void updateRolesListWidget(void);
     void updateRolesListWidgetColor(void);
@@ -144,7 +145,10 @@ public slots:
     void displayNewRectItem(int row);
     void updateDisplayedItemsVector(resizeRect * item);
     void togglePortraitLandscapeMode(bool just_update = false);
+    void resolutionChangedSlot(bool toggled);
     void toggleSingleMultipleImageMode(bool just_update = false);
+    void toggleOrthogonalRotation(bool toggle);
+    void toggleResizableItems(bool toggle);
 
     void saveSelectedItemData(image_handler * data);
     void applySavedDataSlot(void);

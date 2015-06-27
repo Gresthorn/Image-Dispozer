@@ -17,6 +17,7 @@ class imageScene : public QGraphicsScene
 
 private:
     sceneItemsMode itemsMode;
+    bool resizableItems;
 
 public:
     imageScene(QObject *parent = NULL);
@@ -24,6 +25,8 @@ public:
 
     sceneItemsMode getSceneItemsMode(void) { return itemsMode; }
     void setSceneItemsMode(sceneItemsMode mode) { itemsMode = mode; }
+    void setResizableItems(bool enable) { resizableItems = enable; }
+    bool getResizableItems(void) { return resizableItems; }
 
 };
 
