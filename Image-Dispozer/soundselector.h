@@ -64,6 +64,7 @@ public slots:
     void acceptButtonClicked(void);
 
     void volumeChangedSlot(int new_pos);
+    void setVolume(int new_vol);
     void progressChangedSlot(qint64 new_pos);
     void progressUserChangedSlot(int new_pos);
     void durationChangedSlot(qint64 new_maximum);

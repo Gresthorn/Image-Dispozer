@@ -8,13 +8,13 @@ SoundSelector::SoundSelector(QVector<roleString * > * roles_list, QList<sound_ha
 {
     ui->setupUi(this);
 
-    default_volume_level = 50;
+    default_volume_level = 5;
     ui->volumeSlider->setValue(default_volume_level);
     ui->volumeLabel->setText(QString("Volume (%1):").arg(default_volume_level));
     preview = original_handler = NULL;
     mediaPlayer = new QMediaPlayer(this);
     mediaPlayer->setNotifyInterval(100);
-    mediaPlayer->setVolume(default_volume_level);
+    mediaPlayer->setVolume(default_volume_level*10);
     disablePlayer();
 
     ok_s = ok;
@@ -74,7 +74,7 @@ SoundSelector::SoundSelector(QVector<roleString * > * roles_list, QList<sound_ha
     connect(mediaPlayer, SIGNAL(positionChanged(qint64)), this, SLOT(progressChangedSlot(qint64)));
     connect(ui->progressSlider, SIGNAL(sliderMoved(int)), this, SLOT(progressUserChangedSlot(int)));
     connect(mediaPlayer, SIGNAL(durationChanged(qint64)), this, SLOT(durationChangedSlot(qint64)));
-    connect(ui->volumeSlider, SIGNAL(valueChanged(int)), mediaPlayer, SLOT(setVolume(int)));
+    connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(setVolume(int)));
     connect(ui->volumeSlider, SIGNAL(valueChanged(int)), this, SLOT(volumeChangedSlot(int)));
     connect(ui->playSoundButton, SIGNAL(clicked()), this, SLOT(playButtonPressedSlot()));
     connect(ui->stopSoundButton, SIGNAL(clicked()), this, SLOT(stopButtonPressedSlot()));
@@ -476,6 +476,11 @@ void SoundSelector::volumeChangedSlot(int new_pos)
     }
 
     ui->volumeLabel->setText(QString("Volume (%1):").arg(new_pos));
+}
+
+void SoundSelector::setVolume(int new_vol)
+{
+    mediaPlayer->setVolume(new_vol*10);
 }
 
 void SoundSelector::progressChangedSlot(qint64 new_pos)

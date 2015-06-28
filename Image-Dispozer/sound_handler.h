@@ -12,10 +12,11 @@ private:
     int indexPosition;
     int soundRole;
     int volumeLevel;
+    bool enabled;
 
 public:
-    sound_handler(const char *ch, int roleCode = 0, int index = 0, int volume = 50);
-    sound_handler(const QString &s,  int roleCode = 0, int index = 0, int volume = 50);
+    sound_handler(const char *ch, int roleCode = 0, int index = 0, int volume = 5);
+    sound_handler(const QString &s,  int roleCode = 0, int index = 0, int volume = 5);
     ~sound_handler();
 
     bool setSoundPath(const QString & soundPath);
@@ -33,6 +34,9 @@ public:
 
     void setVolumeLevel(int volume);
     int getVolumeLevel(void) { return volumeLevel; }
+
+    bool isEnabled(void) { return enabled; }
+    void setEnabled(bool enable) { enabled = enable; }
 };
 
 #endif // SOUND_HANDLER_H

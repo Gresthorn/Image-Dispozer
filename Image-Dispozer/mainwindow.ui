@@ -515,9 +515,21 @@
      </property>
      <addaction name="actionOrthogonal_rotation"/>
      <addaction name="actionResizable_objects"/>
+     <addaction name="separator"/>
+     <addaction name="actionReposition_on_ratio_change"/>
+     <addaction name="actionResize_on_ratio_change"/>
+    </widget>
+    <widget class="QMenu" name="menuTransformations">
+     <property name="title">
+      <string>Transformations</string>
+     </property>
+     <addaction name="actionFrom_portrait_mode"/>
+     <addaction name="actionFrom_landscape_mode"/>
+     <addaction name="actionNo_transformation"/>
     </widget>
     <addaction name="menuResolution"/>
     <addaction name="menuImage_objects"/>
+    <addaction name="menuTransformations"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -617,6 +629,49 @@
    </property>
    <property name="text">
     <string>Resizable objects</string>
+   </property>
+  </action>
+  <action name="actionReposition_on_ratio_change">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Reposition on ratio change</string>
+   </property>
+  </action>
+  <action name="actionResize_on_ratio_change">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Resize on ratio change</string>
+   </property>
+  </action>
+  <action name="actionFrom_portrait_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>From portrait mode</string>
+   </property>
+  </action>
+  <action name="actionFrom_landscape_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>From landscape mode</string>
+   </property>
+  </action>
+  <action name="actionNo_transformation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>No transformation</string>
    </property>
   </action>
  </widget>

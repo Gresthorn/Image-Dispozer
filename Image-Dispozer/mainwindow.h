@@ -55,13 +55,16 @@ private:
 
     enum port_land_mode {
         PORTRAIT,
-        LANDSCAPE
+        LANDSCAPE,
+        UNDEFINED
     };
 
     enum multiple_image_mode {
         SINGLE,
         MULTIPLE
     };
+
+    port_land_mode baseMode;
 
     bool something_changed;
 
@@ -145,10 +148,13 @@ public slots:
     void displayNewRectItem(int row);
     void updateDisplayedItemsVector(resizeRect * item);
     void togglePortraitLandscapeMode(bool just_update = false);
+    void transformationBaseModeChange(bool toggle);
     void resolutionChangedSlot(bool toggled);
     void toggleSingleMultipleImageMode(bool just_update = false);
     void toggleOrthogonalRotation(bool toggle);
     void toggleResizableItems(bool toggle);
+    void toggleResizeOnRatioChange(bool toggle);
+    void toggleRepositionOnRatioChange(bool toggle);
 
     void saveSelectedItemData(image_handler * data);
     void applySavedDataSlot(void);

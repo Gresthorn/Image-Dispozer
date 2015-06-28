@@ -8,6 +8,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+
+    // set the transformation base - there is only one [0, 0] for both - LANDSCAPE and PORTRAIT mode
+    baseMode = PORTRAIT;
+
     // let tempData to be NULL at startup until first save request by user
     tempItemData = lastItemDataUpdate = NULL;
 
@@ -24,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     view->setOrthogonalRotation(true);
     // add border to the scene
     ratio_mode = PORTRAIT;
-    resize_on_ratio_change = reposition_on_ratio_change = true;
+    resize_on_ratio_change = reposition_on_ratio_change = false;
     hSize = 240;
     vSize = 320;
 
@@ -96,8 +100,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionExport, SIGNAL(triggered()), this, SLOT(exportDataSlot()));
     connect(ui->action240_x_320, SIGNAL(triggered(bool)), this, SLOT(resolutionChangedSlot(bool)));
     connect(ui->action320_x_480, SIGNAL(triggered(bool)), this, SLOT(resolutionChangedSlot(bool)));
+    connect(ui->actionFrom_landscape_mode, SIGNAL(triggered(bool)), this, SLOT(transformationBaseModeChange(bool)));
+    connect(ui->actionFrom_portrait_mode, SIGNAL(triggered(bool)), this, SLOT(transformationBaseModeChange(bool)));
+    connect(ui->actionNo_transformation, SIGNAL(triggered(bool)), this, SLOT(transformationBaseModeChange(bool)));
     connect(ui->actionOrthogonal_rotation, SIGNAL(triggered(bool)), this, SLOT(toggleOrthogonalRotation(bool)));
     connect(ui->actionResizable_objects, SIGNAL(toggled(bool)), this, SLOT(toggleResizableItems(bool)));
+    connect(ui->actionResize_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleResizeOnRatioChange(bool)));
+    connect(ui->actionReposition_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleRepositionOnRatioChange(bool)));
 
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
@@ -394,7 +403,7 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
 
     if(!just_update)
     {
-        qreal temp = hSize;
+        int temp = hSize;
         hSize = vSize;
         vSize = temp;
     }
@@ -422,12 +431,13 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
 
     if(resize_on_ratio_change || reposition_on_ratio_change)
     {
-        qreal ratio = hSize/vSize;
+        qreal ratio = ((qreal)(hSize))/((qreal)(vSize));
         for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
         {
             // udate positions of objects to fit in new dimensions
             if(reposition_on_ratio_change)
             {
+
                 QPointF previous = (*it)->getPosition();
                 (*it)->setPosition(QPointF(previous.x()*ratio, previous.y()/ratio));
             }
@@ -447,6 +457,40 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
     somethingChangedSlot();
 
     scene->update();
+}
+
+void MainWindow::transformationBaseModeChange(bool toggle)
+{
+    // get initiator of this slot
+    QAction * transformationBaseAction = static_cast<QAction * >(sender());
+
+    if(!toggle) transformationBaseAction->setChecked(true);
+
+    // switch to appropriate transformation base according to users clicked action
+    if(transformationBaseAction==ui->actionFrom_portrait_mode)
+    {
+        baseMode = PORTRAIT;
+        ui->actionFrom_landscape_mode->setChecked(false);
+        ui->actionNo_transformation->setChecked(false);
+    }
+    else if(transformationBaseAction==ui->actionFrom_landscape_mode)
+    {
+        baseMode = LANDSCAPE;
+        ui->actionFrom_portrait_mode->setChecked(false);
+        ui->actionNo_transformation->setChecked(false);
+    }
+    else if(transformationBaseAction==ui->actionNo_transformation)
+    {
+        baseMode = UNDEFINED;
+        ui->actionFrom_landscape_mode->setChecked(false);
+        ui->actionFrom_portrait_mode->setChecked(false);
+    }
+    else
+    {
+        baseMode = PORTRAIT;
+        ui->actionFrom_landscape_mode->setChecked(false);
+        ui->actionNo_transformation->setChecked(false);
+    }
 }
 
 void MainWindow::resolutionChangedSlot(bool toggled)
@@ -535,6 +579,16 @@ void MainWindow::toggleOrthogonalRotation(bool toggle)
 void MainWindow::toggleResizableItems(bool toggle)
 {
     scene->setResizableItems(toggle);
+}
+
+void MainWindow::toggleResizeOnRatioChange(bool toggle)
+{
+    resize_on_ratio_change = toggle;
+}
+
+void MainWindow::toggleRepositionOnRatioChange(bool toggle)
+{
+    reposition_on_ratio_change = toggle;
 }
 
 void MainWindow::saveSelectedItemData(image_handler *data)
@@ -933,16 +987,31 @@ void MainWindow::exportDataSlot()
         {
             // save image
             QString role_code_final(QString("%1").arg((*it)->getImageRole(), 3, 10, QChar('0')));
-            //QFile::copy((*it)->imagePath,path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
-            QFile export_image(path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
-            QImage export_img = (*it)->toImage().convertToFormat(QImage::Format_RGB16);
-            export_img.save(&export_image, "BMP", 0);
+            QFile::copy((*it)->getImagePath(),path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
+            //QFile export_image(path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
+            //QImage export_img = (*it)->toImage().convertToFormat(QImage::Format_RGB16);
+            //export_img.save(&export_image, "BMP", 0);
             // create record to config file
             *bmp_cfg_stream << role_code_final << "    " << (int)((*it)->getLBCorner().x()) <<
                             " " << (int)((*it)->getLBCorner().y()) << " " << "1" << "    " << (int)((*it)->getItemRotation()) << endl;
         }
         bmp_cfg.close();
         delete bmp_cfg_stream;
+
+        // wav_cfg.txt
+        QFile wav_cfg(path+"/SD_CONTENT/wav_cfg.txt");
+        wav_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * wav_cfg_stream = new QTextStream(&wav_cfg);
+        for(QList<sound_handler * >::iterator it=soundItems->begin(); it!=soundItems->end(); it++)
+        {
+            // save sound
+            QString role_code_final(QString("%1").arg((*it)->getSoundRole(), 3, 10, QChar('0')));
+            QFile::copy((*it)->getSoundPath(),path+"/SD_CONTENT/SOUND/snd_"+role_code_final+".wav");
+            // create record to config file
+            *wav_cfg_stream << role_code_final << " " << (*it)->isEnabled() << " " << (*it)->getVolumeLevel() << endl;
+        }
+        wav_cfg.close();
+        delete wav_cfg_stream;
 
     }
 }
@@ -1052,7 +1121,7 @@ void MainWindow::saveProfileSlot()
         setts.setValue("statsmstext", stat_sms_text);
         setts.setValue("statsmsenabled", stat_sms_enabled);
         setts.setValue("alarmsmstext", alarm_sms_text);
-        setts.setValue("alarmsmsenabled", alarm_sms_number);
+        setts.setValue("alarmsmsenabled", alarm_sms_enabled);
         setts.setValue("protosmstext", proto_sms_text);
         setts.setValue("protosmsenabled", proto_sms_enabled);
         setts.endGroup();
@@ -1065,7 +1134,7 @@ void MainWindow::saveProfileSlot()
         setts.setValue("callnum4", call_number_4);
         setts.setValue("startsmsnumber", start_sms_number);
         setts.setValue("statsmsnumber", stat_sms_number);
-        setts.setValue("alarm_smsnumber", alarm_sms_number);
+        setts.setValue("alarmsmsnumber", alarm_sms_number);
         setts.setValue("protosmsnumber", proto_sms_number);
         setts.endGroup();
 

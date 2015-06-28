@@ -7,6 +7,7 @@ sound_handler::sound_handler(const char *ch, int roleCode, int index, int volume
     soundRole = roleCode;
     indexPosition = index;
     volumeLevel = volume;
+    enabled = true;
 }
 
 sound_handler::sound_handler(const QString &s, int roleCode, int index, int volume)
@@ -16,6 +17,7 @@ sound_handler::sound_handler(const QString &s, int roleCode, int index, int volu
     soundRole = roleCode;
     indexPosition = index;
     volumeLevel = volume;
+    enabled = true;
 }
 
 sound_handler::~sound_handler()

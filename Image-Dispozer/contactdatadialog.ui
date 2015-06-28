@@ -26,59 +26,13 @@
    <string>Contact numbers</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="4" column="0">
-    <widget class="QLabel" name="startSmsLabel">
-     <property name="text">
-      <string>Start SMS number: </string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QLabel" name="statusSmsLabel">
-     <property name="text">
-      <string>Status SMS number:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QLabel" name="alarmSmsNumber">
-     <property name="text">
-      <string>Alarm SMS number:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="7" column="0">
-    <widget class="QLabel" name="protocolSmsNumber">
-     <property name="text">
-      <string>Protocol SMS number:</string>
-     </property>
-     <property name="alignment">
-      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="1">
-    <widget class="QLineEdit" name="startSmsEdit"/>
-   </item>
    <item row="7" column="1">
     <widget class="QLineEdit" name="protocolSmsEdit"/>
    </item>
    <item row="6" column="1">
     <widget class="QLineEdit" name="alarmSmsEdit"/>
    </item>
-   <item row="5" column="1">
-    <widget class="QLineEdit" name="statusSmsEdit"/>
-   </item>
-   <item row="8" column="1">
+   <item row="12" column="1">
     <widget class="QWidget" name="buttonsWrapper" native="true">
      <layout class="QGridLayout" name="gridLayout_2">
       <property name="leftMargin">
@@ -113,7 +67,65 @@
      </layout>
     </widget>
    </item>
-   <item row="0" column="0">
+   <item row="4" column="1">
+    <widget class="QLineEdit" name="startSmsEdit"/>
+   </item>
+   <item row="4" column="0">
+    <widget class="QLabel" name="startSmsLabel">
+     <property name="text">
+      <string>Start SMS number: </string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QLabel" name="statusSmsLabel">
+     <property name="text">
+      <string>Status SMS number:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QLineEdit" name="statusSmsEdit"/>
+   </item>
+   <item row="6" column="0">
+    <widget class="QLabel" name="alarmSmsNumber">
+     <property name="text">
+      <string>Alarm SMS number:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="9" column="1">
+    <widget class="QLineEdit" name="callNumEdit2"/>
+   </item>
+   <item row="8" column="1">
+    <widget class="QLineEdit" name="callNumEdit1"/>
+   </item>
+   <item row="7" column="0">
+    <widget class="QLabel" name="protocolSmsNumber">
+     <property name="text">
+      <string>Protocol SMS number:</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item row="10" column="1">
+    <widget class="QLineEdit" name="callNumEdit3"/>
+   </item>
+   <item row="11" column="1">
+    <widget class="QLineEdit" name="callNumEdit4"/>
+   </item>
+   <item row="8" column="0">
     <widget class="QLabel" name="callNumLabel1">
      <property name="text">
       <string>Call number 1:</string>
@@ -123,7 +135,7 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="0">
+   <item row="9" column="0">
     <widget class="QLabel" name="callNumLabel2">
      <property name="text">
       <string>Call number 2:</string>
@@ -133,7 +145,7 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="10" column="0">
     <widget class="QLabel" name="callNumLabel3">
      <property name="text">
       <string>Call number 3:</string>
@@ -143,7 +155,7 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="0">
+   <item row="11" column="0">
     <widget class="QLabel" name="callNumLabel4">
      <property name="text">
       <string>Call number 4:</string>
@@ -152,18 +164,6 @@
       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
      </property>
     </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="callNumEdit1"/>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="callNumEdit2"/>
-   </item>
-   <item row="2" column="1">
-    <widget class="QLineEdit" name="callNumEdit3"/>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLineEdit" name="callNumEdit4"/>
    </item>
   </layout>
  </widget>
