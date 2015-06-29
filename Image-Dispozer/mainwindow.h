@@ -64,11 +64,17 @@ private:
         MULTIPLE
     };
 
+    enum port_land_rot_tran_mode {
+        LEFT,
+        RIGHT
+    };
+
     port_land_mode baseMode;
+    port_land_mode ratio_mode;
+    port_land_rot_tran_mode modeChangeRotDirection;
 
     bool something_changed;
 
-    port_land_mode ratio_mode;
     bool resize_on_ratio_change;
     bool reposition_on_ratio_change;
     multiple_image_mode image_mode;
@@ -130,6 +136,8 @@ private:
     void updateRolesListWidget(void);
     void updateRolesListWidgetColor(void);
     void updateVisibleItems(void);
+    QPointF calculateRealCoordinates(const QPointF & pos);
+    qreal calculateRealAngle(const qreal & angle);
 
     QString createDirName(QString & path);
 
@@ -149,6 +157,7 @@ public slots:
     void updateDisplayedItemsVector(resizeRect * item);
     void togglePortraitLandscapeMode(bool just_update = false);
     void transformationBaseModeChange(bool toggle);
+    void transformationRotationModeChange(bool toggle);
     void resolutionChangedSlot(bool toggled);
     void toggleSingleMultipleImageMode(bool just_update = false);
     void toggleOrthogonalRotation(bool toggle);

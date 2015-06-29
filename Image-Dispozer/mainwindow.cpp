@@ -10,7 +10,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     // set the transformation base - there is only one [0, 0] for both - LANDSCAPE and PORTRAIT mode
-    baseMode = PORTRAIT;
+    baseMode = ratio_mode = PORTRAIT;
+    modeChangeRotDirection = LEFT;
+    resize_on_ratio_change = reposition_on_ratio_change = false;
 
     // let tempData to be NULL at startup until first save request by user
     tempItemData = lastItemDataUpdate = NULL;
@@ -27,17 +29,15 @@ MainWindow::MainWindow(QWidget *parent) :
     view = new imageView(scene, this);
     view->setOrthogonalRotation(true);
     // add border to the scene
-    ratio_mode = PORTRAIT;
-    resize_on_ratio_change = reposition_on_ratio_change = false;
     hSize = 240;
     vSize = 320;
 
     // here initial scale is being calculated/set
-    qreal init_scale = 1.8;
+    qreal init_scale = 1.4;
 
     // zoom in a little, so the initial view is bigger and better to be seen
     view->scale(init_scale, -init_scale);
-    view->setCurrentScaleFactor(1.8);
+    view->setCurrentScaleFactor(init_scale);
     offset = 6.0; // because of borders (when windows gets too small and scrollbars are to be appeared)
     view->setSceneRect(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0); // +-offset is because of scrollbars which appear if windows is too small
     view->centerOn(hSize/2.0, vSize/2.0);
@@ -107,6 +107,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionResizable_objects, SIGNAL(toggled(bool)), this, SLOT(toggleResizableItems(bool)));
     connect(ui->actionResize_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleResizeOnRatioChange(bool)));
     connect(ui->actionReposition_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleRepositionOnRatioChange(bool)));
+    connect(ui->actionRight_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
+    connect(ui->actionLeft_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
 
     connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
@@ -413,6 +415,7 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
 
     // resize the border rect
     QPropertyAnimation * border_animation = new QPropertyAnimation(borderRectangle, "size");
+    borderRectangle->setPos(0.0-border_pen_width/4.0, 0.0-border_pen_width/4.0);
     border_animation->setDuration(border_resize_animation_delay);
     border_animation->setStartValue(borderRectangle->getSize());
     border_animation->setEndValue(QSizeF(hSize+border_pen_width, vSize+border_pen_width));
@@ -421,7 +424,7 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
     QPropertyAnimation * scene_rect_animation = new QPropertyAnimation(view, "sceneRect");
     scene_rect_animation->setDuration(border_resize_animation_delay);
     scene_rect_animation->setStartValue(view->sceneRect());
-    scene_rect_animation->setEndValue(QRectF(-offset, -offset, hSize+border_pen_width+offset*2.0, vSize+border_pen_width+offset*2.0));
+    scene_rect_animation->setEndValue(QRectF(-offset, -offset, hSize+offset*2.0, vSize+offset*2.0));
 
     scene_rect_animation->start(QAbstractAnimation::DeleteWhenStopped);
     border_animation->start(QAbstractAnimation::DeleteWhenStopped);
@@ -490,6 +493,31 @@ void MainWindow::transformationBaseModeChange(bool toggle)
         baseMode = PORTRAIT;
         ui->actionFrom_landscape_mode->setChecked(false);
         ui->actionNo_transformation->setChecked(false);
+    }
+}
+
+void MainWindow::transformationRotationModeChange(bool toggle)
+{
+    // get initiator of this slot
+    QAction * transformationRotationAction = static_cast<QAction * >(sender());
+
+    if(!toggle) transformationRotationAction->setChecked(true);
+
+    // switch to appropriate transformation base according to users clicked action
+    if(transformationRotationAction==ui->actionRight_rotation)
+    {
+        modeChangeRotDirection = RIGHT;
+        ui->actionLeft_rotation->setChecked(false);
+    }
+    else if(transformationRotationAction==ui->actionLeft_rotation)
+    {
+        modeChangeRotDirection = LEFT;
+        ui->actionRight_rotation->setChecked(false);
+    }
+    else
+    {
+        modeChangeRotDirection = LEFT;
+        ui->actionRight_rotation->setChecked(false);
     }
 }
 
@@ -705,6 +733,53 @@ void MainWindow::updateVisibleItems()
         displayedItems->at(i)->updateData();
 }
 
+QPointF MainWindow::calculateRealCoordinates(const QPointF &pos)
+{
+    // if baseMode is the same as currently set mode or user do not want transformation - no transformation needed
+    if(baseMode==UNDEFINED || ratio_mode==baseMode) return pos;
+
+    QPointF new_pos;
+    // now we now that the modes are not the same
+    if(modeChangeRotDirection==LEFT)
+    {
+        // from Landscape/Portrait to Portrait/Landscape we are rotating to the left
+        new_pos.setY((qreal)(hSize)-pos.x());
+        new_pos.setX(pos.y());
+        return new_pos;
+    }
+
+    else if(modeChangeRotDirection==RIGHT)
+    {
+        // from Landscape/Portrait to Portrait/Landscape we are rotating to the right
+        new_pos.setY(pos.x());
+        new_pos.setX((qreal)(vSize)-pos.y());
+        return new_pos;
+    }
+
+    return pos;
+}
+
+qreal MainWindow::calculateRealAngle(const qreal &angle)
+{
+    // if baseMode is the same as currently set mode or user do not want transformation - no transformation needed
+    if(baseMode==UNDEFINED || ratio_mode==baseMode) return angle;
+
+    // now we now that the modes are not the same
+    if(modeChangeRotDirection==LEFT)
+    {
+        // from Landscape/Portrait to Portrait/Landscape we are rotating to the left
+        return (angle-90.0)>=360.0 ? (angle+270.0) : (angle-90.0);
+    }
+
+    else if(modeChangeRotDirection==RIGHT)
+    {
+        // from Landscape/Portrait to Portrait/Landscape we are rotating to the right
+        return (angle+90.0)<0.0 ? (angle+270.0) : (angle+90.0);
+    }
+
+    return angle;
+}
+
 void MainWindow::saveAsProfileSlot()
 {
     // we will automatically clear temp_ini_file_path here, so saveProfileSlot() will surely ask for new path
@@ -806,11 +881,14 @@ void MainWindow::updateItemPosition()
     // if ok is set to false, no change is going to be done, Cancel button was clicked
     if(!ok) return;
 
-    // update infoLabel
-    ui->positionDataLabel->setText(QString("%1 %2").arg(values.at(0)).arg(values.at(1)));
-
     item->setPosition(QPointF(values.at(0), values.at(1)));
+    // transform position to LB corner (LB corner behaves like information holder, not defining position of real item)
+    item->setLBCorner(QPointF(values.at(0)-item->getItemSize().width()/2.0, values.at(1)-item->getItemSize().height()/2.0));
     rect->updateData();
+
+    // update infoLabel
+    ui->positionDataLabel->setText(QString("[%1, %2]").arg(values.at(0)).arg(values.at(1)));
+    ui->lbDataLabel->setText(QString("[%1, %2]").arg(item->getLBCorner().x()).arg(item->getLBCorner().y()));
 }
 
 void MainWindow::updateItemLBCorner()
@@ -848,13 +926,14 @@ void MainWindow::updateItemLBCorner()
     // if ok is set to false, no change is going to be done, Cancel button was clicked
     if(!ok) return;
 
-    // update infoLabel
-    ui->lbDataLabel->setText(QString("%1 %2").arg(values.at(0)).arg(values.at(1)));
-
     item->setLBCorner(QPointF(values.at(0), values.at(1)));
     // transform LB corner to position (LB corner behaves like information holder, not defining position of real item)
     item->setPosition(QPointF(values.at(0)+item->getItemSize().width()/2.0, values.at(1)+item->getItemSize().height()/2.0));
     rect->updateData();
+
+    // update infoLabel
+    ui->positionDataLabel->setText(QString("[%1, %2]").arg(item->getPosition().x()).arg(item->getPosition().y()));
+    ui->lbDataLabel->setText(QString("[%1, %2]").arg(values.at(0)).arg(values.at(1)));
 }
 
 void MainWindow::exportDataSlot()
@@ -992,8 +1071,9 @@ void MainWindow::exportDataSlot()
             //QImage export_img = (*it)->toImage().convertToFormat(QImage::Format_RGB16);
             //export_img.save(&export_image, "BMP", 0);
             // create record to config file
-            *bmp_cfg_stream << role_code_final << "    " << (int)((*it)->getLBCorner().x()) <<
-                            " " << (int)((*it)->getLBCorner().y()) << " " << "1" << "    " << (int)((*it)->getItemRotation()) << endl;
+            QPointF real_LB = calculateRealCoordinates((*it)->getLBCorner());
+            *bmp_cfg_stream << role_code_final << "    " << (int)(real_LB.x()) <<
+                            " " << (int)(real_LB.y()) << " " << "1" << "    " << (int)(calculateRealAngle((*it)->getItemRotation())) << endl;
         }
         bmp_cfg.close();
         delete bmp_cfg_stream;
@@ -1215,7 +1295,7 @@ void MainWindow::initFileLoaderWindow()
     ratio_mode = (port_land_mode)(setts.value(QString("%1/mode").arg(section), LANDSCAPE).toInt());
     image_mode = (multiple_image_mode)(setts.value(QString("%1/im_mode").arg(section), SINGLE).toInt());
 
-    // udpate img and ration modes without switching
+    // udpate img and ratio modes without switching
     togglePortraitLandscapeMode(true);
     toggleSingleMultipleImageMode(true);
 

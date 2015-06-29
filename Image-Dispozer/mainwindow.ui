@@ -526,6 +526,9 @@
      <addaction name="actionFrom_portrait_mode"/>
      <addaction name="actionFrom_landscape_mode"/>
      <addaction name="actionNo_transformation"/>
+     <addaction name="separator"/>
+     <addaction name="actionLeft_rotation"/>
+     <addaction name="actionRight_rotation"/>
     </widget>
     <addaction name="menuResolution"/>
     <addaction name="menuImage_objects"/>
@@ -672,6 +675,25 @@
    </property>
    <property name="text">
     <string>No transformation</string>
+   </property>
+  </action>
+  <action name="actionLeft_rotation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Left rotation</string>
+   </property>
+  </action>
+  <action name="actionRight_rotation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Right rotation</string>
    </property>
   </action>
  </widget>
