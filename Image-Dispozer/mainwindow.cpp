@@ -8,6 +8,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    this->setWindowFlags(Qt::WindowContextHelpButtonHint | Qt::WindowCloseButtonHint);
+
 
     // set the transformation base - there is only one [0, 0] for both - LANDSCAPE and PORTRAIT mode
     baseMode = ratio_mode = PORTRAIT;
@@ -187,9 +189,17 @@ void MainWindow::initializeTreeItems()
     rolesList->append(new roleString("Image \" R\"", 53));
     rolesList->append(new roleString("Image \" P\"", 54));
     rolesList->append(new roleString("Image \" H\"", 55));
-    rolesList->append(new roleString("Image \"--\"", 56));
+    rolesList->append(new roleString("Image \"??\"", 56));
 
     rolesList->append(new roleString("Image \"RV\"", 62));
+
+    rolesList->append(new roleString("Image \"Over load\"", 80));
+    rolesList->append(new roleString("Image \"Blank\"", 81));
+    rolesList->append(new roleString("Image \"Arrow UP\"", 82));
+    rolesList->append(new roleString("Image \"Arrow DOWN\"", 83));
+    rolesList->append(new roleString("Image \"Arrow UP&DOWN\"", 84));
+    rolesList->append(new roleString("Image \"Logo\"", 85));
+    rolesList->append(new roleString("Image \"Max rating\"", 86));
 
     // fill the rolesList2 (sounds) with relevant items
     // NOTE that roleList2 is not allowed to be modified elsewhere in the program.

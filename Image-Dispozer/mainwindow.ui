@@ -15,11 +15,11 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
-    <item row="3" column="0">
+    <item row="4" column="0">
      <widget class="QListWidget" name="rolesListWidget">
       <property name="maximumSize">
        <size>
-        <width>157</width>
+        <width>200</width>
         <height>16777215</height>
        </size>
       </property>
@@ -64,182 +64,14 @@
        <property name="bottomMargin">
         <number>0</number>
        </property>
-       <item row="0" column="0">
-        <widget class="QPushButton" name="clearSceneItemsButton">
-         <property name="minimumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-         <property name="statusTip">
-          <string>Clear the scene from all displayed objects</string>
-         </property>
-         <property name="whatsThis">
-          <string>After clicking this button, you can remove all visible items from the scene (Note: this will not remove them totally, just hide them).</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="icons.qrc">
-           <normaloff>:/quick_access/icons/sweep-icon.png</normaloff>:/quick_access/icons/sweep-icon.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="2">
-        <widget class="QPushButton" name="switchPortraitLandscapeButton">
-         <property name="minimumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-         <property name="statusTip">
-          <string>Switch between portrait/landscape mode</string>
-         </property>
-         <property name="whatsThis">
-          <string>Use this button if you would like to switch from landscape/portrait mode (Note: positions currently set will automatically translates to new coordinate system, if this option is not disabled).</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="icons.qrc">
-           <normaloff>:/quick_access/icons/portrait-icon.png</normaloff>:/quick_access/icons/portrait-icon.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="switchSingleMultipleImagesButton">
-         <property name="minimumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="baseSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-         <property name="statusTip">
-          <string>Toggle between single/multiple items mode</string>
-         </property>
-         <property name="whatsThis">
-          <string>You can switch between single or multiple items in scene mode. If single mode is present, only one item at time can be placed in scene and after selecting another, the previous will be automatically hidden.</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="icons.qrc">
-           <normaloff>:/quick_access/icons/multiple-images-icon.png</normaloff>:/quick_access/icons/multiple-images-icon.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="3">
-        <widget class="QPushButton" name="applySavedDataButton">
-         <property name="minimumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>35</width>
-           <height>35</height>
-          </size>
-         </property>
-         <property name="cursor">
-          <cursorShape>PointingHandCursor</cursorShape>
-         </property>
-         <property name="statusTip">
-          <string>Apply saved parameters on selected items</string>
-         </property>
-         <property name="whatsThis">
-          <string>If parameters of some item were  saved, you can select specific items from the list and apply those parameters on them. You can save parameters by right-clicking item in the scene and choosing option &quot;Save data&quot;.</string>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="icons.qrc">
-           <normaloff>:/quick_access/icons/copy-parameters-icon.png</normaloff>:/quick_access/icons/copy-parameters-icon.png</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>30</width>
-           <height>30</height>
-          </size>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
-    <item row="0" column="1" rowspan="4">
-     <widget class="QWidget" name="sceneWidget" native="true">
-      <property name="statusTip">
-       <string>Main dispozer scene</string>
-      </property>
-      <property name="whatsThis">
-       <string>This is the main scene where you can dispoze imported images in their correct position and model your own arrangements.</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
+    <item row="3" column="0">
      <widget class="QGroupBox" name="elementInfoWrapper">
       <property name="maximumSize">
        <size>
-        <width>157</width>
+        <width>200</width>
         <height>16777215</height>
        </size>
       </property>
@@ -281,7 +113,7 @@
         <widget class="QLabel" name="rotationLabel">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -313,7 +145,7 @@
         <widget class="QLabel" name="sizeLabel">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -333,7 +165,7 @@
         <widget class="QLabel" name="imageLabel">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -395,7 +227,7 @@
         <widget class="QLabel" name="lbLabel">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -412,7 +244,7 @@
         <widget class="QLabel" name="positionLabel">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -429,7 +261,7 @@
         <widget class="QLabel" name="nameLabel">
          <property name="font">
           <font>
-           <pointsize>10</pointsize>
+           <pointsize>8</pointsize>
            <weight>75</weight>
            <bold>true</bold>
           </font>
@@ -454,6 +286,204 @@
          </property>
          <property name="text">
           <string>xxx</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item row="0" column="1" rowspan="5">
+     <widget class="QWidget" name="sceneWidget" native="true">
+      <property name="statusTip">
+       <string>Main dispozer scene</string>
+      </property>
+      <property name="whatsThis">
+       <string>This is the main scene where you can dispoze imported images in their correct position and model your own arrangements.</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0">
+     <widget class="QWidget" name="buttonsWrapper" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="clearSceneItemsButton">
+         <property name="minimumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Clear the scene from all displayed objects</string>
+         </property>
+         <property name="statusTip">
+          <string>After clicking this button, you can remove all visible items from the scene (Note: this will not remove them totally, just hide them).</string>
+         </property>
+         <property name="whatsThis">
+          <string>After clicking this button, you can remove all visible items from the scene (Note: this will not remove them totally, just hide them).</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/quick_access/icons/sweep-icon.png</normaloff>:/quick_access/icons/sweep-icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="switchSingleMultipleImagesButton">
+         <property name="minimumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Toggle between single/multiple items mode</string>
+         </property>
+         <property name="statusTip">
+          <string>Toggle between single/multiple items mode</string>
+         </property>
+         <property name="whatsThis">
+          <string>You can switch between single or multiple items in scene mode. If single mode is present, only one item at time can be placed in scene and after selecting another, the previous will be automatically hidden.</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/quick_access/icons/multiple-images-icon.png</normaloff>:/quick_access/icons/multiple-images-icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="switchPortraitLandscapeButton">
+         <property name="minimumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Switch between portrait/landscape mode</string>
+         </property>
+         <property name="statusTip">
+          <string>Switch between portrait/landscape mode</string>
+         </property>
+         <property name="whatsThis">
+          <string>Use this button if you would like to switch from landscape/portrait mode (Note: positions currently set will automatically translates to new coordinate system, if this option is not disabled).</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/quick_access/icons/portrait-icon.png</normaloff>:/quick_access/icons/portrait-icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="applySavedDataButton">
+         <property name="minimumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Apply saved parameters on selected items</string>
+         </property>
+         <property name="statusTip">
+          <string>Apply saved parameters on selected items</string>
+         </property>
+         <property name="whatsThis">
+          <string>If parameters of some item were  saved, you can select specific items from the list and apply those parameters on them. You can save parameters by right-clicking item in the scene and choosing option &quot;Save data&quot;.</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/quick_access/icons/copy-parameters-icon.png</normaloff>:/quick_access/icons/copy-parameters-icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
          </property>
         </widget>
        </item>

@@ -106,8 +106,13 @@ bool image_handler::loadImage(QString imgPath)
         QString suffix = file.completeSuffix();
         if(suffix=="bmp" || suffix=="jpg" || suffix=="png")
         {
-            if(load(imgPath))
+            QImage tempImage;
+            if(tempImage.load(imgPath))
+            {
+                *(static_cast<QPixmap * >(this)) = fromImage(tempImage);
+                this->setItemSize(QSizeF(tempImage.width(), tempImage.height()));
                 return true;
+            }
             else
             {
                 // If image is in bmp format, try to load with 16bit bmp (5-6-5) function.
@@ -120,6 +125,7 @@ bool image_handler::loadImage(QString imgPath)
                     if(tempImage!=NULL) // the load was successful
                     {
                         *(static_cast<QPixmap * >(this)) = fromImage(*tempImage);
+                        this->setItemSize(QSizeF(tempImage->width(), tempImage->height()));
                         delete tempImage;
 
                         return true;
