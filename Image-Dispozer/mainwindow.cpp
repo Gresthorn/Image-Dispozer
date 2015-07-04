@@ -24,15 +24,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
     initializeTreeItems();
 
+    // dimensions of screen
+    hSize = 240;
+    vSize = 320;
+
     // create new scene and view
     scene = new imageScene(this);
     scene->setBackgroundBrush(QBrush(QColor(36, 38, 41), Qt::SolidPattern));
+    scene->setVSize(vSize);
+    scene->setHSize(hSize);
     image_mode = SINGLE;
     view = new imageView(scene, this);
+    view->setVSize(vSize);
+    view->setHSize(hSize);
     view->setOrthogonalRotation(true);
-    // add border to the scene
-    hSize = 240;
-    vSize = 320;
 
     // here initial scale is being calculated/set
     qreal init_scale = 1.4;
@@ -50,6 +55,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(view, SIGNAL(updateDisplayedItemsVector(resizeRect*)), this, SLOT(updateDisplayedItemsVector(resizeRect*)));
     connect(view, SIGNAL(saveSelectedItemData(image_handler*)), this, SLOT(saveSelectedItemData(image_handler*)));
     connect(view, SIGNAL(currentSingleItemSelection(image_handler*)), this, SLOT(updateElementInfo(image_handler*)));
+    connect(view, SIGNAL(someItemHasMoved(image_handler*)), this, SLOT(updateGroupPosData(image_handler*)));
+    connect(view, SIGNAL(someItemHasRotated(image_handler*)), this, SLOT(updateGroupRotData(image_handler*)));
 
     // add border
     borderRectangle = new borderRect(0.0-border_pen_width/2.0, 0.0-border_pen_width/2.0, hSize+border_pen_width, vSize+border_pen_width, NULL);
@@ -70,12 +77,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // set wrapper of quick buttons with no margins
     ui->quickButtonsWrapperWidget->layout()->setContentsMargins(0, 0, 0, 0);
-
-    // TEST PURPOSES ONLY
-    /*resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
-    image_handler * i_handler =  new image_handler(QString("C:\\Users\\PeterMikula\\Desktop\\DISPLAY_APP\\SD_CONTENT\\BMP\\pic_001.bmp"), 0, 0);
-    r_rect->setPixmap(i_handler);
-    scene->addItem(r_rect);*/
 
     temp_ini_file_path.clear();
 
@@ -106,22 +107,27 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionFrom_portrait_mode, SIGNAL(triggered(bool)), this, SLOT(transformationBaseModeChange(bool)));
     connect(ui->actionNo_transformation, SIGNAL(triggered(bool)), this, SLOT(transformationBaseModeChange(bool)));
     connect(ui->actionOrthogonal_rotation, SIGNAL(triggered(bool)), this, SLOT(toggleOrthogonalRotation(bool)));
-    connect(ui->actionResizable_objects, SIGNAL(toggled(bool)), this, SLOT(toggleResizableItems(bool)));
-    connect(ui->actionResize_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleResizeOnRatioChange(bool)));
+    //connect(ui->actionResizable_objects, SIGNAL(toggled(bool)), this, SLOT(toggleResizableItems(bool)));
+    //connect(ui->actionResize_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleResizeOnRatioChange(bool)));
     connect(ui->actionReposition_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleRepositionOnRatioChange(bool)));
     connect(ui->actionRight_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
     connect(ui->actionLeft_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
 
-    connect(ui->rolesListWidget, SIGNAL(currentRowChanged(int)), SLOT(displayNewRectItem(int)));
+    connect(ui->rolesListWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), SLOT(displayNewRectItem(QTreeWidgetItem*,int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
     connect(ui->switchPortraitLandscapeButton, SIGNAL(clicked()), this, SLOT(togglePortraitLandscapeMode()));
     connect(ui->switchSingleMultipleImagesButton, SIGNAL(clicked()), this, SLOT(toggleSingleMultipleImageMode()));
     connect(ui->applySavedDataButton, SIGNAL(clicked()), this, SLOT(applySavedDataSlot()));
 
     connect(ui->rotationDataLabel, SIGNAL(triggered()), this, SLOT(updateItemRotation()));
-    connect(ui->sizeDataLabel, SIGNAL(triggered()), this, SLOT(updateItemSize()));
+    //connect(ui->sizeDataLabel, SIGNAL(triggered()), this, SLOT(updateItemSize()));
     connect(ui->positionDataLabel, SIGNAL(triggered()), this, SLOT(updateItemPosition()));
     connect(ui->lbDataLabel, SIGNAL(triggered()), this, SLOT(updateItemLBCorner()));
+
+    // RESIZING OF OBJECTS IS NOT ALLOWED BECAUSE OF PROBLEMS WITH FITTING INTO WORKING AREA DURING RESIZING
+    // THIS OPTION IS PLACED HERE FOR FUTURE MODIFICATIONS (FOR NOW NO RESIZING IS NEEDED AT ALL)
+    ui->actionResizable_objects->setVisible(false);
+    ui->actionResize_on_ratio_change->setVisible(false);
 }
 
 MainWindow::~MainWindow()
@@ -132,74 +138,74 @@ MainWindow::~MainWindow()
 void MainWindow::initializeTreeItems()
 {
     rolesList = new QVector<roleString * >;
+    rolesList2 = new QVector<roleString * >;
     imageItems = new QList<image_handler * >;
     soundItems = new QList<sound_handler * >;
     importedImages = new QStringList;
     importedSounds = new QStringList;
-    rolesList2 = new QVector<roleString * >;
 
     // fill the rolesList with relevant items
     // NOTE that roleList is not allowed to be modified elsewhere in the program.
     // If more items are needed, they are supposed to be added HERE.
-    rolesList->append(new roleString("Image \" 0\"", 0));
-    rolesList->append(new roleString("Image \" 1\"", 1));
-    rolesList->append(new roleString("Image \" 2\"", 2));
-    rolesList->append(new roleString("Image \" 3\"", 3));
-    rolesList->append(new roleString("Image \" 4\"", 4));
-    rolesList->append(new roleString("Image \" 5\"", 5));
-    rolesList->append(new roleString("Image \" 6\"", 6));
-    rolesList->append(new roleString("Image \" 7\"", 7));
-    rolesList->append(new roleString("Image \" 8\"", 8));
-    rolesList->append(new roleString("Image \" 9\"", 9));
-    rolesList->append(new roleString("Image \"10\"", 10));
-    rolesList->append(new roleString("Image \"11\"", 11));
-    rolesList->append(new roleString("Image \"12\"", 12));
-    rolesList->append(new roleString("Image \"13\"", 13));
-    rolesList->append(new roleString("Image \"14\"", 14));
-    rolesList->append(new roleString("Image \"15\"", 15));
-    rolesList->append(new roleString("Image \"16\"", 16));
-    rolesList->append(new roleString("Image \"17\"", 17));
-    rolesList->append(new roleString("Image \"18\"", 18));
-    rolesList->append(new roleString("Image \"19\"", 19));
-    rolesList->append(new roleString("Image \"20\"", 20));
+    rolesList->append(new roleString("Image \" 0\"", 0, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 1\"", 1, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 2\"", 2, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 3\"", 3, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 4\"", 4, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 5\"", 5, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 6\"", 6, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 7\"", 7, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 8\"", 8, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" 9\"", 9, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"10\"", 10, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"11\"", 11, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"12\"", 12, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"13\"", 13, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"14\"", 14, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"15\"", 15, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"16\"", 16, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"17\"", 17, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"18\"", 18, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"19\"", 19, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"20\"", 20, FLOOR_NUMBER));
 
-    rolesList->append(new roleString("Image \"-1\"", 21));
-    rolesList->append(new roleString("Image \"-2\"", 22));
-    rolesList->append(new roleString("Image \"-3\"", 23));
-    rolesList->append(new roleString("Image \"-4\"", 24));
-    rolesList->append(new roleString("Image \"-5\"", 25));
-    rolesList->append(new roleString("Image \"-6\"", 26));
-    rolesList->append(new roleString("Image \"-7\"", 27));
-    rolesList->append(new roleString("Image \"-8\"", 28));
-    rolesList->append(new roleString("Image \"-9\"", 29));
+    rolesList->append(new roleString("Image \"-1\"", 21, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-2\"", 22, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-3\"", 23, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-4\"", 24, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-5\"", 25, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-6\"", 26, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-7\"", 27, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-8\"", 28, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"-9\"", 29, FLOOR_NUMBER));
 
-    rolesList->append(new roleString("Image \"(empty)\"", 40));
-    rolesList->append(new roleString("Image \" A\"", 41));
-    rolesList->append(new roleString("Image \"A1\"", 42));
-    rolesList->append(new roleString("Image \" B\"", 43));
-    rolesList->append(new roleString("Image \" E\"", 44));
-    rolesList->append(new roleString("Image \"E1\"", 45));
-    rolesList->append(new roleString("Image \" G\"", 46));
-    rolesList->append(new roleString("Image \"G1\"", 47));
-    rolesList->append(new roleString("Image \" F\"", 48));
-    rolesList->append(new roleString("Image \" N\"", 49));
-    rolesList->append(new roleString("Image \"SA\"", 50));
-    rolesList->append(new roleString("Image \"SS\"", 51));
-    rolesList->append(new roleString("Image \"S1\"", 52));
-    rolesList->append(new roleString("Image \" R\"", 53));
-    rolesList->append(new roleString("Image \" P\"", 54));
-    rolesList->append(new roleString("Image \" H\"", 55));
-    rolesList->append(new roleString("Image \"??\"", 56));
+    rolesList->append(new roleString("Image \"(empty)\"", 40, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" A\"", 41, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"A1\"", 42, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" B\"", 43, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" E\"", 44, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"E1\"", 45, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" G\"", 46, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"G1\"", 47, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" F\"", 48, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" N\"", 49, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"SA\"", 50, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"SS\"", 51, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"S1\"", 52, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" R\"", 53, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" P\"", 54, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \" H\"", 55, FLOOR_NUMBER));
+    rolesList->append(new roleString("Image \"??\"", 56, FLOOR_NUMBER));
 
-    rolesList->append(new roleString("Image \"RV\"", 62));
+    rolesList->append(new roleString("Image \"RV\"", 62, FLOOR_NUMBER));
 
-    rolesList->append(new roleString("Image \"Over load\"", 80));
-    rolesList->append(new roleString("Image \"Blank\"", 81));
-    rolesList->append(new roleString("Image \"Arrow UP\"", 82));
-    rolesList->append(new roleString("Image \"Arrow DOWN\"", 83));
-    rolesList->append(new roleString("Image \"Arrow UP&DOWN\"", 84));
-    rolesList->append(new roleString("Image \"Logo\"", 85));
-    rolesList->append(new roleString("Image \"Max rating\"", 86));
+    rolesList->append(new roleString("Image \"Over load\"", 80, WARNING));
+    rolesList->append(new roleString("Image \"Blank\"", 81, ARROW));
+    rolesList->append(new roleString("Image \"Arrow UP\"", 82, ARROW));
+    rolesList->append(new roleString("Image \"Arrow DOWN\"", 83, ARROW));
+    rolesList->append(new roleString("Image \"Arrow UP&DOWN\"", 84, ARROW));
+    rolesList->append(new roleString("Image \"Logo\"", 85, LOGO));
+    rolesList->append(new roleString("Image \"Max rating\"", 86, WARNING));
 
     // fill the rolesList2 (sounds) with relevant items
     // NOTE that roleList2 is not allowed to be modified elsewhere in the program.
@@ -239,9 +245,20 @@ void MainWindow::initializeTreeItems()
     // now all items are unlinked, add each item into unlinkedItems vector
     for(int i = 0; i<rolesList->size(); i++)
     {
-        imageItems->append(new image_handler(QString(), rolesList->at(i)->getRoleCode(), i));
-        imageItems->last()->setPosition(QPointF(100.0, 100.0));
+        imageItems->append(new image_handler(QString(), rolesList->at(i)->getRoleCode(), i, rolesList->at(i)->getRoleGroup()));
+        imageItems->last()->setPosition(QPointF(hSize/2.0, vSize/2.0));
     }
+
+    imageItems->first()->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_086.bmp"));
+    imageItems->first()->setPosition(QPointF(100.0, 100.0));
+    imageItems->at(2)->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_085.bmp"));
+    imageItems->at(2)->setPosition(QPointF(120.0, 120.0));
+
+    // TEST PURPOSES ONLY
+    /*resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
+    image_handler * i_handler =  new image_handler(QString("D:\\Programovanie\\Image-Dispozer\\DISPLAY_APP\\SD_CONTENT\\BMP\\pic_086.bmp"), 0, 0);
+    r_rect->setPixmap(i_handler);
+    scene->addItem(r_rect);*/
 
     // now all items are unlinked, add each item into unlinkedItems vector
     for(int i = 0; i<rolesList2->size(); i++)
@@ -301,16 +318,33 @@ bool MainWindow::checkCompletitionContacts()
 
 void MainWindow::updateRolesListWidget()
 {
-    ui->rolesListWidget->clear();
+    //ui->rolesListWidget->clear();
+    clearRolesListChildItems();
 
     int index, i;
+    image_groups grp;
     i=0;
     for(QList<image_handler * >::iterator it = imageItems->begin(); it<imageItems->end(); it++)
     {
         index = (*it)->getIndex();
-        QListWidgetItem * item = new QListWidgetItem(*rolesList->at(index));
-        item->setData(Qt::UserRole, i); // each item will have direct access to image_handler
-        ui->rolesListWidget->addItem(item);
+        grp = (*it)->getImageGroup();
+        QTreeWidgetItem * parent;
+
+        switch(grp)
+        {
+            case FLOOR_NUMBER: parent = ui->rolesListWidget->topLevelItem(0); break;
+            case ARROW: parent = ui->rolesListWidget->topLevelItem(1); break;
+            case LOGO: parent = ui->rolesListWidget->topLevelItem(2); break;
+            case WARNING: parent = ui->rolesListWidget->topLevelItem(3); break;
+            default: parent = ui->rolesListWidget->topLevelItem(0); break;
+        }
+
+
+        QStringList name;
+        name.append(*rolesList->at(index));
+        QTreeWidgetItem * item = new QTreeWidgetItem(parent, name);
+        item->setData(1, Qt::UserRole, i); // each item will have direct access to image_handler
+        //ui->rolesListWidget->addItem(item);
         ++i;
     }
 
@@ -321,7 +355,21 @@ void MainWindow::updateRolesListWidget()
 void MainWindow::updateRolesListWidgetColor()
 {
     int index = 0;
-    QList<QListWidgetItem * > tempItemList =  ui->rolesListWidget->findItems(QString("*"), Qt::MatchWildcard);
+
+    for(int i=0; i<ui->rolesListWidget->topLevelItemCount(); i++)
+    {
+        for(int a=0; a<ui->rolesListWidget->topLevelItem(i)->childCount(); a++)
+        {
+            QTreeWidgetItem * item = ui->rolesListWidget->topLevelItem(i)->child(a);
+            index = item->data(1, Qt::UserRole).toInt();
+            if(imageItems->at(index)->isFileCorrect())
+                item->setTextColor(0, Qt::darkGreen); // if item is associated
+            else
+                item->setTextColor(0, Qt::red); // if no image is associated
+        }
+    }
+
+    /*QList<QListWidgetItem * > tempItemList =  ui->rolesListWidget->findItems(QString("*"), Qt::MatchWildcard);
     for(QList<QListWidgetItem * >::iterator it = tempItemList.begin(); it<tempItemList.end(); it++)
     {
         index = (*it)->data(Qt::UserRole).toInt();
@@ -329,7 +377,14 @@ void MainWindow::updateRolesListWidgetColor()
             (*it)->setTextColor(Qt::darkGreen); // if item is associated
         else
             (*it)->setTextColor(Qt::red); // if no image is associated
-    }
+    }*/
+}
+
+void MainWindow::clearRolesListChildItems()
+{
+    // clear all items except top level items
+    for(int i=0; i<ui->rolesListWidget->topLevelItemCount(); i++)
+        for(int j=0; j<ui->rolesListWidget->topLevelItem(i)->childCount(); j++) delete ui->rolesListWidget->topLevelItem(i)->child(j);
 }
 
 void MainWindow::imageSelectorWindow()
@@ -340,6 +395,13 @@ void MainWindow::imageSelectorWindow()
     im_select_window.exec();
 
     updateRolesListWidgetColor();
+
+    // update positions. If new images were loaded, we need to update positions, since new images can have sizes
+    // that will not fit into scene
+    for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+    {
+        if((*it)->isFileCorrect()) setHandlerRealPosition((*it)->getPosition().x(), (*it)->getPosition().y(), (*it));
+    }
 
     this->centralWidget()->setFocusPolicy(Qt::StrongFocus);
 
@@ -357,11 +419,15 @@ void MainWindow::soundSelectorWindow()
     this->centralWidget()->setFocusPolicy(Qt::StrongFocus);
 }
 
-void MainWindow::displayNewRectItem(int row)
+void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row)
 {
     Q_UNUSED(row)
 
-    int index = ui->rolesListWidget->currentItem()->data(Qt::UserRole).toInt();
+    // if parent item
+    if(item->parent()==NULL || item->parent()==0) return;
+
+    //int index = ui->rolesListWidget->selectedItems().first()->data(1, Qt::UserRole).toInt();
+    int index = item->data(1, Qt::UserRole).toInt();
 
     if(!imageItems->at(index)->isCurrentlyDisplayed())
     {
@@ -373,7 +439,7 @@ void MainWindow::displayNewRectItem(int row)
 
             // note that you can access xSize or ySize from inside the
             resizeRect * r_rect = new resizeRect(pos.x(), pos.y(), size.width(), size.height(), NULL);
-            r_rect->setRotation(rot);
+            r_rect->setItemRotation(rot);
             // set item handler status of currently displayed boolean to true
             imageItems->at(index)->setCurrentlyDisplayed(true);
             r_rect->setPixmap(imageItems->at(index));
@@ -385,6 +451,8 @@ void MainWindow::displayNewRectItem(int row)
 
             // append to rect items vector, so we have easy access to all rect items in scene
             scene->addItem(r_rect);
+            scene->update();
+            view->update();
         }
         else ui->statusBar->showMessage(tr("This element has not been associated yet"));
     }
@@ -419,6 +487,11 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
         hSize = vSize;
         vSize = temp;
     }
+
+    scene->setVSize(vSize);
+    scene->setHSize(hSize);
+    view->setVSize(vSize);
+    view->setHSize(hSize);
 
     hideDisplayedItems();
     //QThread::msleep(item_opaque_animation_delay);
@@ -643,9 +716,9 @@ void MainWindow::applySavedDataSlot()
     if(!ui->rolesListWidget->selectedItems().isEmpty() && tempItemData!=NULL)
     {
         // apply saved data on all selected items
-        Q_FOREACH(QListWidgetItem * item, ui->rolesListWidget->selectedItems())
+        Q_FOREACH(QTreeWidgetItem * item, ui->rolesListWidget->selectedItems())
         {
-            int index = item->data(Qt::UserRole).toInt(); // data specifies index of image handler in its list
+            int index = item->data(1, Qt::UserRole).toInt(); // data specifies index of image handler in its list
             // update data of item
             imageItems->at(index)->setPosition(tempItemData->getPosition());
             imageItems->at(index)->setItemSize(tempItemData->getItemSize());
@@ -697,10 +770,10 @@ void MainWindow::updateElementInfo(image_handler *item)
 
         // if using float numbers format, use additional parameters for arg(xxx, 5, 'f', 2, '0')
 
-        ui->positionDataLabel->setText(QString("[%1, %2]").arg((int)(pos.x())).arg((int)(pos.y())));
-        ui->lbDataLabel->setText(QString("[%1, %2]").arg((int)(lb.x())).arg((int)(lb.y())));
+        ui->positionDataLabel->setText(QString("[%1, %2]").arg((int)(pos.x()+0.5)).arg((int)(pos.y()+0.5)));
+        ui->lbDataLabel->setText(QString("[%1, %2]").arg((int)(lb.x()+0.5)).arg((int)(lb.y()+0.5)));
         ui->rotationDataLabel->setText(QString("%1°").arg(rotation));
-        ui->sizeDataLabel->setText(QString("%1 %2").arg((int)(siz.width())).arg((int)(siz.height())));
+        ui->sizeDataLabel->setText(QString("%1 %2").arg((int)(siz.width()+0.5)).arg((int)(siz.height()+0.5)));
 
         // prevents string/path parsing too often
         if(item!=lastItemDataUpdate)
@@ -736,11 +809,171 @@ void MainWindow::updateElementInfo(image_handler *item)
     lastItemDataUpdate = item;
 }
 
-void MainWindow::updateVisibleItems()
+void MainWindow::updateGroupPosData(image_handler *item)
+{
+    // if item is undocked, that means it do not share its own data with a group anymore
+    if(!item->isDocked()) return;
+
+    // item is grouped
+    image_groups group = item->getImageGroup();
+    QPointF new_pos = item->getPosition();
+
+    for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+    {
+        if((*it)==item) continue; // the item itself (initiator of signal) has already been updated
+
+        if((*it)->isDocked() && (*it)->getImageGroup()==group)
+        {
+            setHandlerRealPosition(new_pos.x(), new_pos.y(), (*it));
+        }
+    }
+
+    updateVisibleItems(item->getImageGroup());
+}
+
+void MainWindow::updateGroupRotData(image_handler *item)
+{
+    // if item is undocked, that means it do not share its own data with a group anymore
+    if(!item->isDocked()) return;
+
+    // item is grouped
+    image_groups group = item->getImageGroup();
+    qreal new_angle = item->getItemRotation();
+
+    for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+    {
+        if((*it)==item) continue; // the item itself (initiator of signal) has already been updated
+
+        if((*it)->isDocked() && (*it)->getImageGroup()==group)
+        {
+            (*it)->setItemRotation(new_angle);
+            this->checkIfInside((*it)); // check if after rotation, image is not outside the working area
+        }
+    }
+
+    updateVisibleItems(item->getImageGroup());
+}
+
+void MainWindow::setHandlerRealPosition(int x, int y, resizeRect *item)
+{
+    item->setPos((qreal)(x), (qreal)(y));
+    item->updateCurrentPosition();
+
+    // check if item is not leaving the scene
+    if(view->checkIfInside(&item))
+    {
+        item->updateExternalData();
+    }
+    else
+    {
+        item->imageHandlerP()->setPosition(item->pos());
+        item->imageHandlerP()->setLBCorner(item->getWrapperBottomLeft());
+    }
+}
+
+void MainWindow::setHandlerRealPosition(int x, int y, image_handler *item)
+{
+    item->setPosition(QPointF((qreal)(x), (qreal)(y)));
+
+    // check if item is not leaving the scene ... note that here we do not need to update
+    // data in rect and handler together, so function is modified to update only handler
+    // data...
+    checkIfInside(item);
+
+}
+
+bool MainWindow::checkIfInside(image_handler *item)
+{
+    bool parameter_changed = false; // is set to true if we modified something
+
+    if(item!=NULL && item!=0)
+    {
+        QRectF wrapperRect = item->calculateWrapperCorners();
+        qreal wrapperWidth = wrapperRect.width()>0.0 ? wrapperRect.width() : -wrapperRect.width();
+        qreal wrapperHeight = wrapperRect.height()>0.0 ? wrapperRect.height() : -wrapperRect.height();
+
+        // check if item is not leaving right or left border
+        if((item->getPosition().x()+wrapperWidth/2.0)>(qreal)(hSize))
+        {
+            parameter_changed = true;
+            item->setPosition(QPointF((qreal)(hSize)-wrapperWidth/2.0, item->getPosition().y()));
+        }
+        else if((item->getPosition().x()-wrapperWidth/2.0)<0.0)
+        {
+            parameter_changed = true;
+            item->setPosition(QPointF(wrapperWidth/2.0, item->getPosition().y()));
+        }
+
+        // check if item is not leaving top or bottom border
+        if((item->getPosition().y()+wrapperHeight/2.0)>(qreal)(vSize))
+        {
+            parameter_changed = true;
+            item->setPosition(QPointF(item->getPosition().x(), (qreal)(vSize)-wrapperHeight/2.0));
+        }
+        else if((item->getPosition().y()-wrapperHeight/2.0)<0.0)
+        {
+            parameter_changed = true;
+            item->setPosition(QPointF(item->getPosition().x(), wrapperHeight/2.0));
+        }
+    }
+
+    return parameter_changed;
+}
+
+void MainWindow::setHandlerRealLBCorner(int x, int y, resizeRect *item)
+{
+    QRectF wrapperRect = item->getWrapperRect();
+    qreal wrapperWidth = wrapperRect.width()>0.0 ? wrapperRect.width() : -wrapperRect.width();
+    qreal wrapperHeight = wrapperRect.height()>0.0 ? wrapperRect.height() : -wrapperRect.height();
+
+    item->setPos((qreal)(x)+wrapperWidth/2.0, (qreal)(y)+wrapperHeight/2.0);
+    item->updateCurrentPosition();
+    // check if item is not leaving the scene
+    if(view->checkIfInside(&item))
+    {
+        item->updateExternalData();
+    }
+    else
+    {
+        item->imageHandlerP()->setPosition(item->pos());
+        item->imageHandlerP()->setLBCorner(item->getWrapperBottomLeft());
+    }
+}
+
+void MainWindow::setHandlerRealSize(int w, int h, image_handler *item)
+{
+    int r_x = item->getPosition().x();
+    int r_y = item->getPosition().y();
+    int r_w = w;
+    int r_h = h;
+
+    // check if item is not leaving the scene
+    if((r_x+r_w/2)>hSize) r_w = (hSize-r_x)*2;
+    else if((r_x-r_w/2)<0) r_w = r_x*2;
+    if((r_y+r_h/2)>vSize) r_h = (vSize-r_y)*2;
+    else if((r_y-r_h/2)<0) r_h = r_y*2;
+
+    item->setItemSize(QSizeF(r_w, r_h));
+    // transform new width and height to LB corner (LB corner behaves like information holder, not defining position of real item)
+    item->setLBCorner(QPointF(r_x-r_w/2, r_y-r_h/2));
+}
+
+void MainWindow::updateVisibleItems(image_groups group)
 {
     // if data in image_handlers is changed, we need to call update function of each visible item, to immediately apply changes
     for(int i=0; i<displayedItems->count(); i++)
-        displayedItems->at(i)->updateData();
+    {
+        if(group!=NONE)
+        {
+            // if items group is given, update only items of specific group
+            if(displayedItems->at(i)->imageHandlerP()->getImageGroup()==group)
+                displayedItems->at(i)->updateData();
+        }
+        else displayedItems->at(i)->updateData();
+    }
+
+    scene->update();
+    view->update();
 }
 
 QPointF MainWindow::calculateRealCoordinates(const QPointF &pos)
@@ -812,14 +1045,25 @@ void MainWindow::updateItemRotation()
     // update item in scene and image handler
     item->setItemRotation(angle);
     rect->updateData();
+
+    // update group data
+    updateGroupRotData(item);
 }
 
-void MainWindow::updateItemSize()
+/*void MainWindow::updateItemSize()
 {
     resizeRect * rect = NULL;
     image_handler * item = view->checkForSingleSelection(false, false, &rect);
 
     if(item==NULL || rect==NULL) return; // if from some reasons no selected item could be found
+
+    // check if resizing is enabled
+    if(!ui->actionResizable_objects->isChecked())
+    {
+        QMessageBox::information(this, tr("Resizing not allowed"),
+                                 tr("This functionality is not allowed by default. You can change this in settings menu."), QMessageBox::Ok);
+        return;
+    }
 
     // set list with labels
     QStringList labels;
@@ -849,12 +1093,12 @@ void MainWindow::updateItemSize()
     // if ok is set to false, no change is going to be done, Cancel button was clicked
     if(!ok) return;
 
-    // update infoLabel
-    ui->sizeDataLabel->setText(QString("%1 %2").arg(values.at(0)).arg(values.at(1)));
-
-    item->setItemSize(QSizeF(values.at(0), values.at(1)));
+    setHandlerRealSize(values.at(0), values.at(1), item);
     rect->updateData();
-}
+
+    // update infoLabel
+    ui->sizeDataLabel->setText(QString("%1 %2").arg(item->getItemSize().width()).arg(item->getItemSize().height()));
+}*/
 
 void MainWindow::updateItemPosition()
 {
@@ -891,14 +1135,16 @@ void MainWindow::updateItemPosition()
     // if ok is set to false, no change is going to be done, Cancel button was clicked
     if(!ok) return;
 
-    item->setPosition(QPointF(values.at(0), values.at(1)));
-    // transform position to LB corner (LB corner behaves like information holder, not defining position of real item)
-    item->setLBCorner(QPointF(values.at(0)-item->getItemSize().width()/2.0, values.at(1)-item->getItemSize().height()/2.0));
+    // check if item is not leaving the scene
+    setHandlerRealPosition(values.at(0), values.at(1), rect);
     rect->updateData();
 
     // update infoLabel
-    ui->positionDataLabel->setText(QString("[%1, %2]").arg(values.at(0)).arg(values.at(1)));
+    ui->positionDataLabel->setText(QString("[%1, %2]").arg(item->getPosition().x()).arg(item->getPosition().y()));
     ui->lbDataLabel->setText(QString("[%1, %2]").arg(item->getLBCorner().x()).arg(item->getLBCorner().y()));
+
+    // update group data
+    updateGroupPosData(item);
 }
 
 void MainWindow::updateItemLBCorner()
@@ -936,14 +1182,15 @@ void MainWindow::updateItemLBCorner()
     // if ok is set to false, no change is going to be done, Cancel button was clicked
     if(!ok) return;
 
-    item->setLBCorner(QPointF(values.at(0), values.at(1)));
-    // transform LB corner to position (LB corner behaves like information holder, not defining position of real item)
-    item->setPosition(QPointF(values.at(0)+item->getItemSize().width()/2.0, values.at(1)+item->getItemSize().height()/2.0));
-    rect->updateData();
+    // check if item is not leaving the scene
+    setHandlerRealLBCorner(values.at(0), values.at(1), rect);
 
     // update infoLabel
     ui->positionDataLabel->setText(QString("[%1, %2]").arg(item->getPosition().x()).arg(item->getPosition().y()));
-    ui->lbDataLabel->setText(QString("[%1, %2]").arg(values.at(0)).arg(values.at(1)));
+    ui->lbDataLabel->setText(QString("[%1, %2]").arg(item->getLBCorner().x()).arg(item->getLBCorner().y()));
+
+    // update group data
+    updateGroupPosData(item);
 }
 
 void MainWindow::exportDataSlot()

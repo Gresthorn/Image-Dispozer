@@ -19,6 +19,9 @@ private:
     sceneItemsMode itemsMode;
     bool resizableItems;
 
+    int vSize;
+    int hSize;
+
 public:
     imageScene(QObject *parent = NULL);
     ~imageScene();
@@ -27,6 +30,10 @@ public:
     void setSceneItemsMode(sceneItemsMode mode) { itemsMode = mode; }
     void setResizableItems(bool enable) { resizableItems = enable; }
     bool getResizableItems(void) { return resizableItems; }
+    void setVSize(int vSizeP) { vSize = vSizeP; }
+    void setHSize(int hSizeP) { hSize = hSizeP; }
+    int getVSize(void) { return vSize; }
+    int getHSize(void) { return hSize; }
 
 };
 

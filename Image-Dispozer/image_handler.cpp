@@ -1,9 +1,11 @@
 #include "image_handler.h"
 
-image_handler::image_handler(QString path, int roleCode, int index)
-    : QPixmap()
+image_handler::image_handler(QString path, int roleCode, int index, image_groups group)
+    : QPixmap(), PI(3.141592653589793238462643383279502884197169399375105820974944592307816406286)
 {
     indexPosition = index;
+
+    group_id =group;
 
     tempImagePath.clear();
     imagePath.clear();
@@ -17,6 +19,8 @@ image_handler::image_handler(QString path, int roleCode, int index)
 
     currentlyDisplayed = false;
 
+    docked = true;
+
     // only implicit values
     xyPosition.setX(0.0); xyPosition.setY(0.0);
     lbCorner.setX(-100.0); lbCorner.setY(-100.0);
@@ -24,13 +28,15 @@ image_handler::image_handler(QString path, int roleCode, int index)
     itemRotation = 0.0;
 }
 
-image_handler::image_handler(QPixmap img, QString path, int roleCode, int index, bool file_correct)
-    : QPixmap(img)
+image_handler::image_handler(QPixmap img, QString path, int roleCode, int index, bool file_correct, image_groups group)
+    : QPixmap(img), PI(3.141592653589793238462643383279502884197169399375105820974944592307816406286)
 {
     // We suppose, that 'img' is pixmap already loaded in memory, so we just use this pixmap
     // without checking if file exists in the path given.
 
     indexPosition = index;
+
+    group_id = group;
 
     tempImagePath.clear();
     imagePath.clear();
@@ -38,7 +44,11 @@ image_handler::image_handler(QPixmap img, QString path, int roleCode, int index,
 
     imageRole = roleCode;
 
+    currentlyDisplayed = false;
+
     fileOK = file_correct;
+
+    docked = true;
 
     // only implicit values
     xyPosition.setX(0.0); xyPosition.setY(0.0);
@@ -51,7 +61,7 @@ image_handler &image_handler::operator=(image_handler &image)
 {
     QPixmap temp = image.copy();
     image_handler * new_handler = new image_handler(temp, image.getImagePath(), image.getImageRole(),
-                                                    image.getIndex(), image.isFileCorrect());
+                                                    image.getIndex(), image.isFileCorrect(), image.getImageGroup());
 
     // update position and size of newly created item
     new_handler->setItemSize(this->getItemSize());
@@ -60,6 +70,59 @@ image_handler &image_handler::operator=(image_handler &image)
     new_handler->setItemRotation(this->getItemRotation());
 
     return *new_handler;
+}
+
+QRectF image_handler::calculateWrapperCorners()
+{
+    qreal height = itemSize.height();
+    qreal width = itemSize.width();
+
+    // calculate diagonal line length between [0, 0] and corner
+    qreal diag_length = sqrt(pow(width/2.0, 2.0)+pow(height/2.0, 2.0));
+    qreal offset_angle_right = asin((height/2.0)/diag_length);
+    qreal offset_angle_left = PI-offset_angle_right;
+
+    qreal r_angle_radians = (itemRotation/180.0)*PI;
+
+    // change angles in 2nd and 4th quadrant
+    if((r_angle_radians>=PI/2.0 && r_angle_radians<PI) ||
+            ((r_angle_radians>=((PI/2.0)*3.0)) && r_angle_radians<(2.0*PI))) r_angle_radians = (PI/2.0-r_angle_radians)+PI/2.0;
+
+    qreal calc_angle_right = offset_angle_right+r_angle_radians;
+    qreal calc_angle_left = offset_angle_left+r_angle_radians;
+
+    //qreal top_right_x = cos(calc_angle_right)*diag_length;
+    //qreal top_left_y = sin(calc_angle_left)*diag_length
+
+    qreal top_right_y = sin(calc_angle_right)*diag_length;
+    qreal top_left_x = cos(calc_angle_left)*diag_length;
+
+    // make correction for angles greater or equal to 180.0 otherwise rect will be mirrored and flipped
+    if(itemRotation>=180.0)
+    {
+        top_right_y = -top_right_y;
+        top_left_x = -top_left_x;
+    }
+
+    QPointF topLeftW, topRightW, bottomLeftW, bottomRightW;
+
+    // calculate reference corners
+    topLeftW.setX(top_left_x);
+    topLeftW.setY(top_right_y);
+
+    bottomRightW.setX(-top_left_x);
+    bottomRightW.setY(-top_right_y);
+
+    // calculate other corners
+    /*topRightW.setX(-top_left_x);
+    topRightW.setY(top_right_y);
+
+    bottomLeftW.setX(top_left_x);
+    bottomLeftW.setY(-top_right_y);*/
+
+    QRectF wrapperRect(topLeftW, bottomRightW);
+
+    return wrapperRect;
 }
 
 int image_handler::setImage(QString path)

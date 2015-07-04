@@ -22,6 +22,10 @@ private:
     bool orthogonalRotation;
     qreal currentScaleFactor;
 
+    QPoint cursorMousePressPosition;
+
+    int vSize, hSize;
+
 public:
     imageView(imageScene * scene, QWidget * parent = NULL);
 
@@ -31,6 +35,13 @@ public:
     bool getOrthogonalRotation(void) { return orthogonalRotation; }
     void setCurrentScaleFactor(qreal scaleFactor) { currentScaleFactor = scaleFactor; }
     qreal getCurrentScaleFactor(void) { return currentScaleFactor; }
+    void stretchItem(class resizeRect ** hndl);
+    bool checkIfInside(class resizeRect ** hndl);
+
+    void setVSize(int vSizeP) { vSize = vSizeP; }
+    void setHSize(int hSizeP) { hSize = hSizeP; }
+    int getVSize(void) { return vSize; }
+    int getHSize(void) { return hSize; }
 
 protected:
     void wheelEvent(QWheelEvent *event);
@@ -48,6 +59,8 @@ signals:
     void saveSelectedItemData(class image_handler * );
     void currentSingleItemSelection(class image_handler * );
     void currentSingleItemSelectionRect(class resizeRect * );
+    void someItemHasMoved(class image_handler * );
+    void someItemHasRotated(class image_handler * );
 };
 
 #endif // IMAGEVIEW_H

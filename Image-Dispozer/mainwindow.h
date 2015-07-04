@@ -129,13 +129,21 @@ private:
     bool ack_banel_error;
     int volume;
 
+
+    void setHandlerRealPosition(int x, int y, resizeRect *item);
+    void setHandlerRealPosition(int x, int y, image_handler * item);
+    bool checkIfInside(image_handler * item);
+    void setHandlerRealLBCorner(int x, int y, resizeRect *item);
+    void setHandlerRealSize(int w, int h, image_handler * item);
+
     void initializeTreeItems(void);
     bool checkCompletitionImageItems(void);
     bool checkCompletitionSoundsItems(QString * error_filepaths);
     bool checkCompletitionContacts(void);
     void updateRolesListWidget(void);
     void updateRolesListWidgetColor(void);
-    void updateVisibleItems(void);
+    void clearRolesListChildItems(void);
+    void updateVisibleItems(image_groups group=NONE);
     QPointF calculateRealCoordinates(const QPointF & pos);
     qreal calculateRealAngle(const qreal & angle);
 
@@ -153,7 +161,7 @@ public slots:
     void mainCfgWindow(void);
     void smsContentsWindow(void);
 
-    void displayNewRectItem(int row);
+    void displayNewRectItem(QTreeWidgetItem * item, int row);
     void updateDisplayedItemsVector(resizeRect * item);
     void togglePortraitLandscapeMode(bool just_update = false);
     void transformationBaseModeChange(bool toggle);
@@ -172,12 +180,14 @@ public slots:
     void revealDisplayedItems(void);
 
     void updateElementInfo(image_handler * item);
+    void updateGroupPosData(image_handler * item);
+    void updateGroupRotData(image_handler * item);
 
     void saveProfileSlot(void);
     void saveAsProfileSlot(void);
 
     void updateItemRotation(void);
-    void updateItemSize(void);
+    //void updateItemSize(void);
     void updateItemPosition(void);
     void updateItemLBCorner(void);
 

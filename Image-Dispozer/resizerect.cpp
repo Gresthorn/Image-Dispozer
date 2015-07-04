@@ -1,12 +1,13 @@
 #include "resizerect.h"
 
 resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent)
-    : QGraphicsItem(parent), cornerSquareSize(3.0)
+    : QGraphicsItem(parent), cornerSquareSize(5.0), PI(3.141592653589793238462643383279502884197169399375105820974944592307816406286)
 {
     xPos = x;
     yPos = y;
     width = w;
     height = h;
+    itemRotation = 0.0;
 
     topLeft.setX(-width/2.0);
     topLeft.setY(height/2.0);
@@ -33,6 +34,8 @@ resizeRect::resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent
     setPos(x, y);
     setAcceptHoverEvents(true);
     setAcceptDrops(true);
+
+    calculateWrapperCorners();
 }
 
 resizeRect::~resizeRect()
@@ -43,24 +46,36 @@ resizeRect::~resizeRect()
 
 void resizeRect::incrementRotation(qreal angle)
 {
-    qreal temp_rot = rotation()+angle;
+    qreal temp_rot = itemRotation+angle;
     temp_rot = (((temp_rot)<0.0) ? temp_rot+360.0 : temp_rot);
 
     if(qFuzzyCompare(temp_rot, 360))
     {
-        setRotation(0.0);
+        //setRotation(0.0);
+        itemRotation = 0.0;
+        calculateWrapperCorners();
+
+        // NOTE THAT THE FOLLOWING CODE IS NOT NEEDED ANY MORE SINCE IT TURNS THAT IT IS
+        // BETTER TO MAKE GLOBAL UPDATE OF EXTERNAL DATA IN GRAPHICS VIEW
         // also update wrapper's bottom left corner which changes with rotating as well
-        image->setLBCorner(getWrapperBottomLeft());
-        image->setItemRotation(0.0);
+        //image->setLBCorner(getWrapperBottomLeft());
+        //image->setItemRotation(0.0);
     }
     else
     {
         if(temp_rot>360.0) temp_rot = 90.0;
-        setRotation(temp_rot);
+        //setRotation(temp_rot);
+        itemRotation = temp_rot;
+        calculateWrapperCorners();
+
+        // NOTE THAT THE FOLLOWING CODE IS NOT NEEDED ANY MORE SINCE IT TURNS THAT IT IS
+        // BETTER TO MAKE GLOBAL UPDATE OF EXTERNAL DATA IN GRAPHICS VIEW
         // also update wrapper's bottom left corner which changes with rotating as well
-        image->setLBCorner(getWrapperBottomLeft());
-        image->setItemRotation(temp_rot);
+        //image->setLBCorner(getWrapperBottomLeft());
+        //image->setItemRotation(temp_rot);
     }
+
+    this->scene()->update();
 }
 
 void resizeRect::switchFlipX()
@@ -100,10 +115,82 @@ void resizeRect::updateData()
     bottomLeft.setX(-width/2.0); bottomLeft.setY(-height/2.0);
 
     // finally we will rotate item
-    setRotation(rot);
+    setItemRotation(rot);
+
+    calculateWrapperCorners();
+
+    // Sometimes if some element in group is modified, the group is updated automatically.
+    // However those modifications can be not appropriate for "this" item and we need to
+    // check them.
+    imageView * view = static_cast<imageView * >(this->scene()->views().first());
+    resizeRect * this_item = this;
+    if(view->checkIfInside(&this_item))
+    {
+        // after check if item is inside, its position is updated, we need to modify handler as well
+        this->updateExternalData();
+    }
 
     // update scene so changes can directly be visible
     this->scene()->update();
+}
+
+void resizeRect::updateExternalData()
+{
+    image->setItemRotation(this->getItemRotation());
+    image->setItemSize(this->getCurrentSize());
+    image->setPosition(this->getCurrentPosition());
+    image->setLBCorner(this->getWrapperBottomLeft());
+}
+
+void resizeRect::calculateWrapperCorners()
+{
+    // calculate diagonal line length between [0, 0] and corner
+    qreal diag_length = sqrt(pow(width/2.0, 2.0)+pow(height/2.0, 2.0));
+    qreal offset_angle_right = asin((height/2.0)/diag_length);
+    qreal offset_angle_left = PI-offset_angle_right;
+
+    qreal r_angle_radians = (itemRotation/180.0)*PI;
+
+    // change angles in 2nd and 4th quadrant
+    if((r_angle_radians>=PI/2.0 && r_angle_radians<PI) ||
+            ((r_angle_radians>=((PI/2.0)*3.0)) && r_angle_radians<(2.0*PI))) r_angle_radians = (PI/2.0-r_angle_radians)+PI/2.0;
+
+    qreal calc_angle_right = offset_angle_right+r_angle_radians;
+    qreal calc_angle_left = offset_angle_left+r_angle_radians;
+
+    //qreal top_right_x = cos(calc_angle_right)*diag_length;
+    //qreal top_left_y = sin(calc_angle_left)*diag_length
+
+    qreal top_right_y = sin(calc_angle_right)*diag_length;
+    qreal top_left_x = cos(calc_angle_left)*diag_length;
+
+    // make correction for angles greater or equal to 180.0 otherwise rect will be mirrored and flipped
+    if(itemRotation>=180.0)
+    {
+        top_right_y = -top_right_y;
+        top_left_x = -top_left_x;
+    }
+
+    // calculate reference corners
+    topLeftW.setX(top_left_x);
+    topLeftW.setY(top_right_y);
+
+    bottomRightW.setX(-top_left_x);
+    bottomRightW.setY(-top_right_y);
+
+    // calculate other corners
+    topRightW.setX(-top_left_x);
+    topRightW.setY(top_right_y);
+
+    bottomLeftW.setX(top_left_x);
+    bottomLeftW.setY(-top_right_y);
+}
+
+QRectF resizeRect::getWrapperRect()
+{
+    QRectF r(mapToScene(topLeftW), mapToScene(bottomRightW));
+    return r;
+
 }
 
 void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
@@ -113,6 +200,11 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
     if(isSelected())
     {
+
+        painter->save();
+        painter->drawRect(QRectF(topLeftW, bottomRightW));
+        painter->restore();
+
         // if item is selected, draw also bordering with resize handlers
         painter->save();
 
@@ -127,6 +219,7 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         // draw small squares to the corners and in the middle of borders
         qreal cssHalf = scaledCorner/2.0;
 
+        painter->rotate(itemRotation);
         painter->setPen(Qt::NoPen);
         painter->setBrush(QBrush(QColor(Qt::darkGreen)));
 
@@ -135,16 +228,17 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
         painter->drawRect(QRectF(bottomLeft.x()-cssHalf, bottomLeft.y()-cssHalf, scaledCorner, scaledCorner)); // bottomLeft square
         painter->drawRect(QRectF(bottomRight.x()-cssHalf, bottomRight.y()-cssHalf, scaledCorner, scaledCorner)); // bottomLeft square
 
-        painter->drawRect(QRectF(-cssHalf, height/2.0-cssHalf, scaledCorner, scaledCorner)); // top border
+        /*painter->drawRect(QRectF(-cssHalf, height/2.0-cssHalf, scaledCorner, scaledCorner)); // top border
         painter->drawRect(QRectF(width/2.0-cssHalf, -cssHalf, scaledCorner, scaledCorner)); // right border
         painter->drawRect(QRectF(-cssHalf, -height/2.0-cssHalf, scaledCorner, scaledCorner)); // bottom border
-        painter->drawRect(QRectF(-width/2.0-cssHalf, -cssHalf, scaledCorner, scaledCorner)); // left border
+        painter->drawRect(QRectF(-width/2.0-cssHalf, -cssHalf, scaledCorner, scaledCorner)); // left border*/
 
         painter->restore();
     }
 
     painter->save();
     painter->scale(flipX*1.0, flipY*1.0);
+    painter->rotate(-itemRotation);
     if(image!=NULL)
     {
         if(image->isFileCorrect())
@@ -170,7 +264,16 @@ void resizeRect::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 QRectF resizeRect::boundingRect() const
 {
     // subtrackt full cornerSquareSize (not only half) will ensure better repainting while changing size of widget
-    QRectF r((topLeft.x()-cornerSquareSize), -(topLeft.y()+cornerSquareSize), width+cornerSquareSize*2.0, height+cornerSquareSize*2.0);
+    //QRectF r((topLeft.x()-cornerSquareSize), -(topLeft.y()+cornerSquareSize), width+cornerSquareSize*2.0, height+cornerSquareSize*2.0);
+
+    QPointF t_l = topLeftW;
+    t_l.setY(-t_l.y());
+
+    QPointF b_r = bottomRightW;
+    b_r.setY(-b_r.y());
+
+    QRectF r(t_l, b_r);
+
     return r;
 }
 
@@ -188,15 +291,32 @@ bool resizeRect::isNearAt(QPointF pos, QPointF ref)
     return false;
 }
 
-qreal resizeRect::checkForLimit(qreal previous, qreal next)
+qreal resizeRect::checkForLimit(qreal previous, qreal next, bool * boundary)
 {
     // block setting point that will lead to exchange the corners to the other side than their original
     // e.g. topLeft will become topRight, or if y-scaling, topLeft will become bottomLeft, or both cases together -> topLeft will become bottomRight
-    qreal boundary = 10.0;
+    qreal boundary_val = 10.0;
+    *boundary = false;
     if(previous<0.0)
-        return (next>(-boundary)) ? -boundary : next;
+    {
+        if(next>(-boundary_val))
+        {
+            *boundary = true;
+            return -boundary_val;
+        }
+        else
+            return next;
+    }
     else
-        return (next<boundary) ? boundary : next;
+    {
+        if(next<boundary_val)
+        {
+            *boundary = true;
+            return boundary_val;
+        }
+        else
+            return next;
+    }
 
     return next;
 }
@@ -204,7 +324,7 @@ qreal resizeRect::checkForLimit(qreal previous, qreal next)
 QPointF resizeRect::getWrapperBottomLeft()
 {
     // Wrapper is rectangle connecting all corners and does not matter on rotation of item.
-    QPointF x, y; // points holding x and y position
+    /*QPointF x, y; // points holding x and y position
     qreal rotAngle = rotation();
     if(rotAngle>=0.0 && rotAngle<90.0)
     {
@@ -232,7 +352,9 @@ QPointF resizeRect::getWrapperBottomLeft()
         return QPointF(x.x(), y.y());
     }
 
-    return QPointF(xPos, yPos); // returns at least central point
+    return QPointF(xPos, yPos); // returns at least central point*/
+
+    return mapToScene(bottomLeftW);
 }
 
 void resizeRect::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
@@ -276,6 +398,8 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
         xPos = curr_point.x();
         yPos = curr_point.y();
 
+        this->calculateWrapperCorners();
+
         image->setPosition(curr_point);
         image->setItemSize(QSizeF(width, height));
         image->setLBCorner(getWrapperBottomLeft());
@@ -285,15 +409,16 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 
     prepareGeometryChange();
 
-    QPointF temp, diffTemp;
+    QPointF temp, diffTemp, pt;
     temp = event->pos();
+    bool boundary_x, boundary_y;
 
     switch(resize)
     {
         case TOPLEFT:
             diffTemp = (temp-topLeft)/2.0;
-            topLeft.setX(checkForLimit(topLeft.x(), topLeft.x()+diffTemp.x()));
-            topLeft.setY(checkForLimit(topLeft.y(), topLeft.y()+diffTemp.y()));
+            topLeft.setX(checkForLimit(topLeft.x(), topLeft.x()+diffTemp.x(), &boundary_x));
+            topLeft.setY(checkForLimit(topLeft.y(), topLeft.y()+diffTemp.y(), &boundary_y));
 
             topRight.setX(-topLeft.x());
             topRight.setY(topLeft.y());
@@ -302,21 +427,30 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             bottomRight.setX(-topLeft.x());
             bottomRight.setY(-topLeft.y());
 
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_x) this->setX(pt.x());
+            if(!boundary_y) this->setY(pt.y());
+
             break;
         case TOP:
             diffTemp = (temp-topLeft)/2.0;
 
-            topLeft.setY(checkForLimit(topLeft.y(), topLeft.y()+diffTemp.y()));
+            topLeft.setY(checkForLimit(topLeft.y(), topLeft.y()+diffTemp.y(), &boundary_y));
             topRight.setY(topLeft.y());
             bottomRight.setY(-topLeft.y());
-            bottomLeft.setY(-topLeft.y());
+            bottomLeft.setY(-topLeft.y());  
+
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_y) this->setY(pt.y());
 
             break;
         case TOPRIGHT:
             diffTemp = (temp-topRight)/2.0;
 
-            topRight.setX(checkForLimit(topRight.x(), topRight.x()+diffTemp.x()));
-            topRight.setY(checkForLimit(topRight.y(), topRight.y()+diffTemp.y()));
+            topRight.setX(checkForLimit(topRight.x(), topRight.x()+diffTemp.x(), &boundary_x));
+            topRight.setY(checkForLimit(topRight.y(), topRight.y()+diffTemp.y(), &boundary_y));
             topLeft.setX(-topRight.x());
             topLeft.setY(topRight.y());
             bottomLeft.setX(-topRight.x());
@@ -324,21 +458,30 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             bottomRight.setX(topRight.x());
             bottomRight.setY(-topRight.y());
 
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_x) this->setX(pt.x());
+            if(!boundary_y) this->setY(pt.y());
+
             break;
         case RIGHT:
             diffTemp = (temp-topRight)/2.0;
 
-            topRight.setX(checkForLimit(topRight.x(), topRight.x()+diffTemp.x()));
+            topRight.setX(checkForLimit(topRight.x(), topRight.x()+diffTemp.x(), &boundary_x));
             topLeft.setX(-topRight.x());
             bottomRight.setX(topRight.x());
             bottomLeft.setX(-topRight.x());
+
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_x) this->setX(pt.x());
 
             break;
         case BOTTOMRIGHT:
             diffTemp = (temp-bottomRight)/2.0;
 
-            bottomRight.setX(checkForLimit(bottomRight.x(), bottomRight.x()+diffTemp.x()));
-            bottomRight.setY(checkForLimit(bottomRight.y(), bottomRight.y()+diffTemp.y()));
+            bottomRight.setX(checkForLimit(bottomRight.x(), bottomRight.x()+diffTemp.x(), &boundary_x));
+            bottomRight.setY(checkForLimit(bottomRight.y(), bottomRight.y()+diffTemp.y(), &boundary_y));
             topLeft.setX(-bottomRight.x());
             topLeft.setY(-bottomRight.y());
             bottomLeft.setX(-bottomRight.x());
@@ -346,21 +489,30 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             topRight.setX(bottomRight.x());
             topRight.setY(-bottomRight.y());
 
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_x) this->setX(pt.x());
+            if(!boundary_y) this->setY(pt.y());
+
             break;
         case BOTTOM:
             diffTemp = (temp-bottomRight)/2.0;
 
-            bottomRight.setY(checkForLimit(bottomRight.y(), bottomRight.y()+diffTemp.y()));
+            bottomRight.setY(checkForLimit(bottomRight.y(), bottomRight.y()+diffTemp.y(), &boundary_y));
             topRight.setY(-bottomRight.y());
             topLeft.setY(-bottomRight.y());
             bottomLeft.setY(bottomRight.y());
+
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_y) this->setY(pt.y());
 
             break;
         case BOTTOMLEFT:
             diffTemp = (temp-bottomLeft)/2.0;
 
-            bottomLeft.setX(checkForLimit(bottomLeft.x(), bottomLeft.x()+diffTemp.x()));
-            bottomLeft.setY(checkForLimit(bottomLeft.y(), bottomLeft.y()+diffTemp.y()));
+            bottomLeft.setX(checkForLimit(bottomLeft.x(), bottomLeft.x()+diffTemp.x(), &boundary_x));
+            bottomLeft.setY(checkForLimit(bottomLeft.y(), bottomLeft.y()+diffTemp.y(), &boundary_y));
             topLeft.setX(bottomLeft.x());
             topLeft.setY(-bottomLeft.y());
             bottomRight.setX(-bottomLeft.x());
@@ -368,14 +520,23 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
             topRight.setX(-bottomLeft.x());
             topRight.setY(-bottomLeft.y());
 
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_x) this->setX(pt.x());
+            if(!boundary_y) this->setY(pt.y());
+
             break;
         case LEFT:
             diffTemp = (temp-bottomLeft)/2.0;
 
-            bottomLeft.setX(checkForLimit(bottomLeft.x(), bottomLeft.x()+diffTemp.x()));
+            bottomLeft.setX(checkForLimit(bottomLeft.x(), bottomLeft.x()+diffTemp.x(), &boundary_x));
             topLeft.setX(bottomLeft.x());
             bottomRight.setX(-bottomLeft.x());
             topRight.setX(-bottomLeft.x());
+
+            pt = mapToScene(diffTemp);
+
+            if(!boundary_x) this->setX(pt.x());
 
             break;
         default: break;
@@ -390,6 +551,9 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
     QPointF curr_point = mapToScene(0.0, 0.0);
     xPos = curr_point.x();
     yPos = curr_point.y();
+
+
+    this->calculateWrapperCorners();
 
     this->scene()->update();
 }
@@ -422,6 +586,8 @@ void resizeRect::mousePressEvent(QGraphicsSceneMouseEvent *event)
     }
     else resize = NONE;
 
+    this->calculateWrapperCorners();
+
     QGraphicsItem::mousePressEvent(event);
     this->scene()->update();
 }
@@ -438,6 +604,9 @@ void resizeRect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     // save new data to handler, so they can be loaded later if graphics item is deleted and revealed
     image->setPosition(QPointF(xPos, yPos));
     image->setItemSize(QSizeF(width, height));
+    image->setLBCorner(getWrapperBottomLeft());
+
+    this->calculateWrapperCorners();
 
     QGraphicsItem::mouseReleaseEvent(event);
     this->scene()->update();

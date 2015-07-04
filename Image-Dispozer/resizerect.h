@@ -12,6 +12,7 @@
 #include <QCursor>
 #include <QPixmap>
 #include <QDebug>
+#include <cmath>
 
 #include "image_handler.h"
 #include "imageview.h"
@@ -85,14 +86,17 @@ private:
     qreal flipX, flipY;
 
     qreal xPos, yPos, width, height;
+    qreal itemRotation;
 
+    const qreal PI;
     const qreal cornerSquareSize;
 
     QPointF topLeft, topRight, bottomLeft, bottomRight;
+    QPointF topLeftW, topRightW, bottomLeftW, bottomRightW;
+
 
     bool isNearAt(QPointF pos, QPointF ref);
-    qreal checkForLimit(qreal previous, qreal next);
-    QPointF getWrapperBottomLeft(void);
+    qreal checkForLimit(qreal previous, qreal next, bool *boundary);
 
     enum { RESIZE_RECT_ITEM = QVariant::UserType+100 };
     int type() const { return RESIZE_RECT_ITEM; }
@@ -108,10 +112,14 @@ public:
     resizeRect(qreal x, qreal y, qreal w, qreal h, QGraphicsItem *parent);
     ~resizeRect();
 
+    void calculateWrapperCorners(void);
+    QRectF getWrapperRect(void);
+    QPointF getWrapperBottomLeft(void);
     void incrementRotation(qreal angle);
     void switchFlipX(void);
     void switchFlipY(void);
     QPointF getCurrentPosition(void) { return QPointF(xPos, yPos); }
+    void updateCurrentPosition(void) { xPos = this->pos().x(); yPos = this->pos().y(); }
     QSize getCurrentSize(void) { return QSize(width, height); }
 
     void setPixmap(image_handler *handler);
@@ -119,7 +127,11 @@ public:
 
     void setNewOpacity(qreal opaque) { setOpacity(opaque); }
 
+    void setItemRotation(qreal rot) { itemRotation = rot; }
+    qreal getItemRotation(void) { return itemRotation; }
+
     void updateData(void);
+    void updateExternalData(void);
 
     inline image_handler * imageHandlerP(void) { return image; }
 
