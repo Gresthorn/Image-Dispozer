@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>524</width>
-    <height>451</height>
+    <height>453</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -126,6 +126,10 @@
         <property name="text">
          <string>Select directory</string>
         </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/dialog_selector_icons/dialog_icons/image_folder_icon.png</normaloff>:/dialog_selector_icons/dialog_icons/image_folder_icon.png</iconset>
+        </property>
        </widget>
       </item>
       <item>
@@ -144,6 +148,10 @@
         </property>
         <property name="text">
          <string>Select image(s)</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/dialog_selector_icons/dialog_icons/images_icon.png</normaloff>:/dialog_selector_icons/dialog_icons/images_icon.png</iconset>
         </property>
        </widget>
       </item>
@@ -169,6 +177,10 @@
         </property>
         <property name="text">
          <string>Remove selected</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/dialog_selector_icons/dialog_icons/images_remove_icon.png</normaloff>:/dialog_selector_icons/dialog_icons/images_remove_icon.png</iconset>
         </property>
        </widget>
       </item>
@@ -202,6 +214,10 @@
         <property name="text">
          <string>Link</string>
         </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/dialog_selector_icons/dialog_icons/link_icon.png</normaloff>:/dialog_selector_icons/dialog_icons/link_icon.png</iconset>
+        </property>
        </widget>
       </item>
       <item>
@@ -226,6 +242,10 @@
         </property>
         <property name="text">
          <string>Unlink</string>
+        </property>
+        <property name="icon">
+         <iconset resource="icons.qrc">
+          <normaloff>:/dialog_selector_icons/dialog_icons/unlink_icon.png</normaloff>:/dialog_selector_icons/dialog_icons/unlink_icon.png</iconset>
         </property>
        </widget>
       </item>
@@ -283,7 +303,7 @@
          <enum>Qt::LeftToRight</enum>
         </property>
         <property name="text">
-         <string>Incremental item step switching</string>
+         <string>Hold last item index</string>
         </property>
        </widget>
       </item>
@@ -310,7 +330,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="icons.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

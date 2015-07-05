@@ -248,7 +248,7 @@ void ImageSelector::unlinkSelectedItems()
 void ImageSelector::loadSelectedImages()
 {
     QStringList selectedFiles = QFileDialog::getOpenFileNames(this, tr("Select images to load"), QDir::currentPath(),
-                                                                QString("Image files (*.bmp *.jpg *.png)"));
+                                                                QString("Image files (*.bmp)"));
     // if user clicks cancel, or selects no items
     if(selectedFiles.isEmpty()) return;
 
@@ -278,9 +278,9 @@ void ImageSelector::loadImagesFromDir()
     QDirIterator it(selected_dir.path(), QDir::Files, QDirIterator::NoIteratorFlags);
     while(it.hasNext())
     {
-        // check if is image in format bmp, jpg or png
+        // check if is image in format bmp
         QFileInfo file(it.next());
-        if(file.suffix()=="bmp" || file.suffix()=="png" || file.suffix()=="jpg")
+        if(file.suffix()=="bmp")
         {
             // file is image, so we can add it to the imported list
             QListWidgetItem * item = new QListWidgetItem(file.fileName());
@@ -330,7 +330,7 @@ void ImageSelector::imageListWasClicked(void)
 
             QMessageBox::warning(this, tr("Image could not be loaded"),
                                   tr("The selected image could not be loaded. Check if the image is still availible on "
-                                     "your disk or is in correct format (bmp, png, jpg)."), QMessageBox::Ok);
+                                     "your disk or is in correct format (bmp)."), QMessageBox::Ok);
         }
     }
 }
@@ -381,7 +381,7 @@ void ImageSelector::imageRoleWasClicked()
 
             QMessageBox::warning(this, tr("Image could not be loaded"),
                                   tr("The selected image could not be loaded. Check if the image is still availible on "
-                                     "your disk or is in correct format (bmp, png, jpg)."), QMessageBox::Ok);
+                                     "your disk or is in correct format (bmp)."), QMessageBox::Ok);
         }
     }
 }

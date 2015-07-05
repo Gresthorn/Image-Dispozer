@@ -131,10 +131,11 @@ private:
 
 
     void setHandlerRealPosition(int x, int y, resizeRect *item);
-    void setHandlerRealPosition(int x, int y, image_handler * item);
+    void setHandlerRealPosition(qreal x, qreal y, image_handler * item);
     bool checkIfInside(image_handler * item);
+    bool predictRotation(image_handler * item, qreal angle);
     void setHandlerRealLBCorner(int x, int y, resizeRect *item);
-    void setHandlerRealSize(int w, int h, image_handler * item);
+    //void setHandlerRealSize(int w, int h, image_handler * item);
 
     void initializeTreeItems(void);
     bool checkCompletitionImageItems(void);
@@ -153,6 +154,8 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 public slots:
+    void debugSlot(void);
+
     void removeAllDisplayedItems(void);
     void imageSelectorWindow(void);
     void soundSelectorWindow(void);
@@ -161,7 +164,8 @@ public slots:
     void mainCfgWindow(void);
     void smsContentsWindow(void);
 
-    void displayNewRectItem(QTreeWidgetItem * item, int row);
+    void displayNewRectItem(QTreeWidgetItem * item, int row, bool displayComposition = false);
+    void displayCompositionSlot(void);
     void updateDisplayedItemsVector(resizeRect * item);
     void togglePortraitLandscapeMode(bool just_update = false);
     void transformationBaseModeChange(bool toggle);
@@ -182,6 +186,7 @@ public slots:
     void updateElementInfo(image_handler * item);
     void updateGroupPosData(image_handler * item);
     void updateGroupRotData(image_handler * item);
+    void updateItemsDockStateIcon(image_handler * item);
 
     void saveProfileSlot(void);
     void saveAsProfileSlot(void);
@@ -194,6 +199,8 @@ public slots:
     void somethingChangedSlot(void) { something_changed = true;  }
 
     void exportDataSlot(void);
+
+    void aboutSlot(void);
 };
 
 #endif // MAINWINDOW_H

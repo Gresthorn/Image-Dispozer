@@ -601,12 +601,12 @@ void resizeRect::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
     xPos = curr_point.x();
     yPos = curr_point.y();
 
+    this->calculateWrapperCorners();
+
     // save new data to handler, so they can be loaded later if graphics item is deleted and revealed
     image->setPosition(QPointF(xPos, yPos));
     image->setItemSize(QSizeF(width, height));
     image->setLBCorner(getWrapperBottomLeft());
-
-    this->calculateWrapperCorners();
 
     QGraphicsItem::mouseReleaseEvent(event);
     this->scene()->update();

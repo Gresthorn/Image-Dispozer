@@ -59,14 +59,14 @@ public:
 
     void setPosition(QPointF newPosition) { xyPosition = newPosition; }
     void setItemSize(QSizeF newSize) { itemSize = newSize; }
-    void setItemRotation(qreal angle) { itemRotation = angle; }
+    void setItemRotation(qreal angle);
     void setLBCorner(QPointF newCorner) { lbCorner = newCorner; }
     QPointF getPosition(void) { return xyPosition; }
     QSizeF getItemSize(void) { return itemSize; }
     qreal getItemRotation(void) { return itemRotation; }
     QPointF getLBCorner(void) { return lbCorner; }
 
-    QRectF calculateWrapperCorners(void);
+    QRectF calculateWrapperCorners(qreal angle=-5000.0);
 
     QString getTempImagePath(void) { return tempImagePath; }
     void setTempImagePath(QString path) { tempImagePath = path; }

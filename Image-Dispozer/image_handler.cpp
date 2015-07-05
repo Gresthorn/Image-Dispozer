@@ -72,8 +72,21 @@ image_handler &image_handler::operator=(image_handler &image)
     return *new_handler;
 }
 
-QRectF image_handler::calculateWrapperCorners()
+void image_handler::setItemRotation(qreal angle)
 {
+    QRectF wrapper = calculateWrapperCorners();
+    qreal wrapperWidth = wrapper.width()>0.0 ? wrapper.width() : -wrapper.width();
+    qreal wrapperHeight = wrapper.height()>0.0 ? wrapper.height() : -wrapper.height();
+    this->setLBCorner(QPointF(xyPosition.x()-wrapperWidth/2.0, xyPosition.y()-wrapperHeight/2.0));
+    itemRotation = angle;
+}
+
+QRectF image_handler::calculateWrapperCorners(qreal angle)
+{
+    // this setting allows to call this function with desired angle and calculate
+    // resulting wrapper without needing to modify itemRotation of handler (usefull for predictions)
+    qreal rot_angle = (angle>=0.0) ? angle : itemRotation;
+
     qreal height = itemSize.height();
     qreal width = itemSize.width();
 
@@ -82,7 +95,7 @@ QRectF image_handler::calculateWrapperCorners()
     qreal offset_angle_right = asin((height/2.0)/diag_length);
     qreal offset_angle_left = PI-offset_angle_right;
 
-    qreal r_angle_radians = (itemRotation/180.0)*PI;
+    qreal r_angle_radians = (rot_angle/180.0)*PI;
 
     // change angles in 2nd and 4th quadrant
     if((r_angle_radians>=PI/2.0 && r_angle_radians<PI) ||

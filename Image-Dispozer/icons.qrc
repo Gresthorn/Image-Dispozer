@@ -6,5 +6,21 @@
         <file>icons/multiple-images-icon.png</file>
         <file>icons/single-image-icon.png</file>
         <file>icons/copy-parameters-icon.png</file>
+        <file>icons/composition-icon.png</file>
+    </qresource>
+    <qresource prefix="/list_icons">
+        <file>lists_icons/pinned.png</file>
+        <file>lists_icons/unpinned.png</file>
+        <file>lists_icons/missing.png</file>
+    </qresource>
+    <qresource prefix="/dialog_selector_icons">
+        <file>dialog_icons/image_folder_icon.png</file>
+        <file>dialog_icons/images_icon.png</file>
+        <file>dialog_icons/images_remove_icon.png</file>
+        <file>dialog_icons/sound_folder_icon.png</file>
+        <file>dialog_icons/sounds_icon.png</file>
+        <file>dialog_icons/sounds_remove_icon.png</file>
+        <file>dialog_icons/link_icon.png</file>
+        <file>dialog_icons/unlink_icon.png</file>
     </qresource>
 </RCC>

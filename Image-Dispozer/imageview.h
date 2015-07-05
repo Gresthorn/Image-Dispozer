@@ -26,6 +26,8 @@ private:
 
     int vSize, hSize;
 
+    class resizeRect * lastly_selected;
+
 public:
     imageView(imageScene * scene, QWidget * parent = NULL);
 
@@ -61,6 +63,7 @@ signals:
     void currentSingleItemSelectionRect(class resizeRect * );
     void someItemHasMoved(class image_handler * );
     void someItemHasRotated(class image_handler * );
+    void someItemHasChangedDockedState(class image_handler * );
 };
 
 #endif // IMAGEVIEW_H

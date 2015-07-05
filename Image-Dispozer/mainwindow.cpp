@@ -57,6 +57,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(view, SIGNAL(currentSingleItemSelection(image_handler*)), this, SLOT(updateElementInfo(image_handler*)));
     connect(view, SIGNAL(someItemHasMoved(image_handler*)), this, SLOT(updateGroupPosData(image_handler*)));
     connect(view, SIGNAL(someItemHasRotated(image_handler*)), this, SLOT(updateGroupRotData(image_handler*)));
+    connect(view, SIGNAL(someItemHasChangedDockedState(image_handler*)), this, SLOT(updateItemsDockStateIcon(image_handler*)));
 
     // add border
     borderRectangle = new borderRect(0.0-border_pen_width/2.0, 0.0-border_pen_width/2.0, hSize+border_pen_width, vSize+border_pen_width, NULL);
@@ -112,9 +113,11 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionReposition_on_ratio_change, SIGNAL(toggled(bool)), this, SLOT(toggleRepositionOnRatioChange(bool)));
     connect(ui->actionRight_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
     connect(ui->actionLeft_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
+    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(aboutSlot()));
 
     connect(ui->rolesListWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), SLOT(displayNewRectItem(QTreeWidgetItem*,int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
+    connect(ui->displayCompozitionButton, SIGNAL(clicked()), this, SLOT(displayCompositionSlot()));
     connect(ui->switchPortraitLandscapeButton, SIGNAL(clicked()), this, SLOT(togglePortraitLandscapeMode()));
     connect(ui->switchSingleMultipleImagesButton, SIGNAL(clicked()), this, SLOT(toggleSingleMultipleImageMode()));
     connect(ui->applySavedDataButton, SIGNAL(clicked()), this, SLOT(applySavedDataSlot()));
@@ -128,6 +131,10 @@ MainWindow::MainWindow(QWidget *parent) :
     // THIS OPTION IS PLACED HERE FOR FUTURE MODIFICATIONS (FOR NOW NO RESIZING IS NEEDED AT ALL)
     ui->actionResizable_objects->setVisible(false);
     ui->actionResize_on_ratio_change->setVisible(false);
+
+    // THIS IS ONLY DEBUG BUTTON, HIDE IF NOT NEEDED
+    ui->debugButton->setHidden(false);
+    connect(ui->debugButton, SIGNAL(clicked()), this, SLOT(debugSlot()));
 }
 
 MainWindow::~MainWindow()
@@ -199,7 +206,7 @@ void MainWindow::initializeTreeItems()
 
     rolesList->append(new roleString("Image \"RV\"", 62, FLOOR_NUMBER));
 
-    rolesList->append(new roleString("Image \"Over load\"", 80, WARNING));
+    rolesList->append(new roleString("Image \"Over load\"", 80, FLOOR_NUMBER));
     rolesList->append(new roleString("Image \"Blank\"", 81, ARROW));
     rolesList->append(new roleString("Image \"Arrow UP\"", 82, ARROW));
     rolesList->append(new roleString("Image \"Arrow DOWN\"", 83, ARROW));
@@ -249,16 +256,10 @@ void MainWindow::initializeTreeItems()
         imageItems->last()->setPosition(QPointF(hSize/2.0, vSize/2.0));
     }
 
-    imageItems->first()->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_086.bmp"));
+    /*imageItems->first()->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_086.bmp"));
     imageItems->first()->setPosition(QPointF(100.0, 100.0));
     imageItems->at(2)->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_085.bmp"));
-    imageItems->at(2)->setPosition(QPointF(120.0, 120.0));
-
-    // TEST PURPOSES ONLY
-    /*resizeRect * r_rect = new resizeRect(hSize/2.0, vSize/2.0, 100, 100, NULL);
-    image_handler * i_handler =  new image_handler(QString("D:\\Programovanie\\Image-Dispozer\\DISPLAY_APP\\SD_CONTENT\\BMP\\pic_086.bmp"), 0, 0);
-    r_rect->setPixmap(i_handler);
-    scene->addItem(r_rect);*/
+    imageItems->at(2)->setPosition(QPointF(120.0, 120.0));*/
 
     // now all items are unlinked, add each item into unlinkedItems vector
     for(int i = 0; i<rolesList2->size(); i++)
@@ -363,9 +364,20 @@ void MainWindow::updateRolesListWidgetColor()
             QTreeWidgetItem * item = ui->rolesListWidget->topLevelItem(i)->child(a);
             index = item->data(1, Qt::UserRole).toInt();
             if(imageItems->at(index)->isFileCorrect())
+            {
+                // the icon change is addition since it is allowed to undock item
+                if(!imageItems->at(index)->isDocked())
+                    item->setIcon(0, QIcon(QString(":/list_icons/lists_icons/unpinned.png")));
+                else
+                    item->setIcon(0, QIcon(QString(":/list_icons/lists_icons/pinned.png")));
+
                 item->setTextColor(0, Qt::darkGreen); // if item is associated
+            }
             else
+            {
                 item->setTextColor(0, Qt::red); // if no image is associated
+                item->setIcon(0, QIcon(QString(":/list_icons/lists_icons/missing.png")));
+            }
         }
     }
 
@@ -419,7 +431,7 @@ void MainWindow::soundSelectorWindow()
     this->centralWidget()->setFocusPolicy(Qt::StrongFocus);
 }
 
-void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row)
+void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row, bool displayComposition)
 {
     Q_UNUSED(row)
 
@@ -445,7 +457,7 @@ void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row)
             r_rect->setPixmap(imageItems->at(index));
 
             // check for mode, if SINGLE mode is enabled, we will clear other images in scene before adding new
-            if(image_mode==SINGLE) removeAllDisplayedItems();
+            if(!displayComposition) if(image_mode==SINGLE) removeAllDisplayedItems();
 
             displayedItems->append(r_rect);
 
@@ -457,6 +469,34 @@ void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row)
         else ui->statusBar->showMessage(tr("This element has not been associated yet"));
     }
     else ui->statusBar->showMessage(tr("This element is already displayed"));
+}
+
+void MainWindow::displayCompositionSlot()
+{
+    hideDisplayedItems();
+
+    bool no_item_found = true;
+    // we will try to fing at least one linked item in each group and display it in the scene
+    int groups_count = ui->rolesListWidget->topLevelItemCount();
+
+    for(int i = 0; i<groups_count; i++)
+    {
+        int child_count = ui->rolesListWidget->topLevelItem(i)->childCount();
+        for(int a = 0; a<child_count; a++)
+        {
+            int index = ui->rolesListWidget->topLevelItem(i)->child(a)->data(1, Qt::UserRole).toInt();
+            // check if this item is correctly set and linked
+            if(imageItems->at(index)->isFileCorrect())
+            {
+                displayNewRectItem(ui->rolesListWidget->topLevelItem(i)->child(a), 0, true);
+                no_item_found = false;
+                break;
+            }
+        }
+    }
+
+    if(no_item_found)
+        QMessageBox::information(this, tr("No linked item found"), tr("There is no linked item in any of availible groups. No results can be displayed."));
 }
 
 void MainWindow::updateDisplayedItemsVector(resizeRect * item)
@@ -707,28 +747,54 @@ void MainWindow::saveSelectedItemData(image_handler *data)
     if(tempItemData==NULL) tempItemData = new image_handler();
 
     tempItemData->setPosition(data->getPosition());
-    tempItemData->setItemSize(data->getItemSize());
+    // copying size is blocked since no size change is able any more (may be in future releasess)
+    //tempItemData->setItemSize(data->getItemSize());
     tempItemData->setItemRotation(data->getItemRotation());
 }
 
 void MainWindow::applySavedDataSlot()
 {
+    bool docked_selected = false;
     if(!ui->rolesListWidget->selectedItems().isEmpty() && tempItemData!=NULL)
     {
         // apply saved data on all selected items
         Q_FOREACH(QTreeWidgetItem * item, ui->rolesListWidget->selectedItems())
         {
+            // filter out top level items
+            if(item->parent()==NULL || item->parent()==0) continue;
+
             int index = item->data(1, Qt::UserRole).toInt(); // data specifies index of image handler in its list
-            // update data of item
-            imageItems->at(index)->setPosition(tempItemData->getPosition());
-            imageItems->at(index)->setItemSize(tempItemData->getItemSize());
+
+            if(imageItems->at(index)->isDocked())
+            {
+                docked_selected = true;
+                continue;
+            }
+
+            // skip unlinked items
+            if(!imageItems->at(index)->isFileCorrect())
+            {
+                continue;
+            }
+
+            // size modifications are not allowed in this version (may be un future releases will be)
+            //imageItems->at(index)->setItemSize(tempItemData->getItemSize());
             imageItems->at(index)->setItemRotation(tempItemData->getItemRotation());
+
+            // need to check if item is inside after modifying position
+            setHandlerRealPosition(tempItemData->getPosition().x(), tempItemData->getPosition().y(), imageItems->at(index));
         }
 
         somethingChangedSlot();
     }
 
-    view->viewport()->update();
+    updateVisibleItems();
+
+    if(docked_selected)
+    {
+        QMessageBox::information(this, tr("Group items selected"), tr("Copying properties is allowed only between undocked items. You have selected also items that are"
+                                                                      " still sharing their properties with group. These items were skipped during update process."));
+    }
 }
 
 void MainWindow::hideDisplayedItems()
@@ -846,6 +912,8 @@ void MainWindow::updateGroupRotData(image_handler *item)
 
         if((*it)->isDocked() && (*it)->getImageGroup()==group)
         {
+            if(!predictRotation(item, new_angle)) continue;
+
             (*it)->setItemRotation(new_angle);
             this->checkIfInside((*it)); // check if after rotation, image is not outside the working area
         }
@@ -853,6 +921,32 @@ void MainWindow::updateGroupRotData(image_handler *item)
 
     updateVisibleItems(item->getImageGroup());
 }
+
+void MainWindow::updateItemsDockStateIcon(image_handler *item)
+{
+    int top_level_count = ui->rolesListWidget->topLevelItemCount();
+
+    for(int i=0; i<top_level_count; i++)
+    {
+        int child_count = ui->rolesListWidget->topLevelItem(i)->childCount();
+
+        for(int a=0; a<child_count; a++)
+        {
+            QTreeWidgetItem * list_item = ui->rolesListWidget->topLevelItem(i)->child(a);
+            int index = list_item->data(1, Qt::UserRole).toInt();
+
+            // we will search only for the item that was changed
+            if(imageItems->at(index)!=item) continue;
+
+            // the icon change is addition since it is allowed to undock item
+            if(!imageItems->at(index)->isDocked())
+                list_item->setIcon(0, QIcon(QString(":/list_icons/lists_icons/unpinned.png")));
+            else
+                list_item->setIcon(0, QIcon(QString(":/list_icons/lists_icons/pinned.png")));
+        }
+    }
+}
+
 
 void MainWindow::setHandlerRealPosition(int x, int y, resizeRect *item)
 {
@@ -871,15 +965,18 @@ void MainWindow::setHandlerRealPosition(int x, int y, resizeRect *item)
     }
 }
 
-void MainWindow::setHandlerRealPosition(int x, int y, image_handler *item)
+void MainWindow::setHandlerRealPosition(qreal x, qreal y, image_handler *item)
 {
-    item->setPosition(QPointF((qreal)(x), (qreal)(y)));
+    item->setPosition(QPointF(x, y));
+    QRectF wrapper = item->calculateWrapperCorners();
+    qreal wrapperWidth = wrapper.width()>0.0 ? wrapper.width() : -wrapper.width();
+    qreal wrapperHeight = wrapper.height()>0.0 ? wrapper.height() : -wrapper.height();
+    item->setLBCorner(QPointF(x-wrapperWidth/2.0, y-wrapperHeight/2.0));
 
     // check if item is not leaving the scene ... note that here we do not need to update
-    // data in rect and handler together, so function is modified to update only handler
+    // data in rect and handler together, so function (checkIfInside) is modified to update only handler
     // data...
     checkIfInside(item);
-
 }
 
 bool MainWindow::checkIfInside(image_handler *item)
@@ -897,27 +994,45 @@ bool MainWindow::checkIfInside(image_handler *item)
         {
             parameter_changed = true;
             item->setPosition(QPointF((qreal)(hSize)-wrapperWidth/2.0, item->getPosition().y()));
+            item->setLBCorner(QPointF((qreal)(hSize)-wrapperWidth, item->getLBCorner().y()));
         }
         else if((item->getPosition().x()-wrapperWidth/2.0)<0.0)
         {
             parameter_changed = true;
             item->setPosition(QPointF(wrapperWidth/2.0, item->getPosition().y()));
+            item->setLBCorner(QPointF(0.0, item->getLBCorner().y()));
         }
 
         // check if item is not leaving top or bottom border
         if((item->getPosition().y()+wrapperHeight/2.0)>(qreal)(vSize))
         {
             parameter_changed = true;
-            item->setPosition(QPointF(item->getPosition().x(), (qreal)(vSize)-wrapperHeight/2.0));
+            item->setPosition(QPointF(item->getPosition().x(), (qreal)(vSize)-wrapperHeight/2.0));            
+            item->setLBCorner(QPointF(item->getLBCorner().x(), (qreal)(vSize)-wrapperHeight));
         }
         else if((item->getPosition().y()-wrapperHeight/2.0)<0.0)
         {
             parameter_changed = true;
             item->setPosition(QPointF(item->getPosition().x(), wrapperHeight/2.0));
+            item->setLBCorner(QPointF(item->getLBCorner().x(), 0.0));
         }
     }
 
     return parameter_changed;
+}
+
+bool MainWindow::predictRotation(image_handler *item, qreal angle)
+{
+    // calculate if such rotation is possible
+    QRectF wrapper = item->calculateWrapperCorners(angle);
+    int wrapper_width = (int)(wrapper.width()+0.5);
+    int wrapper_height = (int)(wrapper.height()+0.5);
+    if(wrapper_width>hSize || wrapper_height>vSize)
+    {
+        return false;
+    }
+
+    return true;
 }
 
 void MainWindow::setHandlerRealLBCorner(int x, int y, resizeRect *item)
@@ -940,7 +1055,7 @@ void MainWindow::setHandlerRealLBCorner(int x, int y, resizeRect *item)
     }
 }
 
-void MainWindow::setHandlerRealSize(int w, int h, image_handler *item)
+/*void MainWindow::setHandlerRealSize(int w, int h, image_handler *item)
 {
     int r_x = item->getPosition().x();
     int r_y = item->getPosition().y();
@@ -956,7 +1071,7 @@ void MainWindow::setHandlerRealSize(int w, int h, image_handler *item)
     item->setItemSize(QSizeF(r_w, r_h));
     // transform new width and height to LB corner (LB corner behaves like information holder, not defining position of real item)
     item->setLBCorner(QPointF(r_x-r_w/2, r_y-r_h/2));
-}
+}*/
 
 void MainWindow::updateVisibleItems(image_groups group)
 {
@@ -1037,10 +1152,37 @@ void MainWindow::updateItemRotation()
 
     if(item==NULL || rect==NULL) return; // if from some reasons no selected item could be found
 
-    qreal angle = QInputDialog::getInt(this, tr("Angle"), tr("Set new angle"), item->getItemRotation(), 0, 359);
+    qreal angle = 0.0;
+    forever
+    {
+        angle = QInputDialog::getInt(this, tr("Angle"), tr("Set new angle"), item->getItemRotation(), 0, 359);
+        if(view->getOrthogonalRotation())
+        {
+            // if orthogonal rotation is set, we can only set the following angles
+            if(qFuzzyCompare(angle, 90.0) || qFuzzyCompare(angle, 180.0)
+                    || qFuzzyCompare(angle, 270.0) || qFuzzyCompare(angle, 0.0)) break;
+            else
+            {
+                QMessageBox::warning(this, tr("Orthogonal rotation"), tr("You are in orthogonal rotation mode. You can set only <b>0°</b>, "
+                                                                         "<b>90°</b>, <b>180°</b> or <b>270°</b> angle."));
+                continue;
+            }
+        }
 
+        // if no critery for angle
+        break;
+    }
     // update infoLabel
     ui->rotationDataLabel->setText(QString("%1").arg(angle));
+
+    // calculate if such rotation is possible
+    if(!predictRotation(item, angle))
+    {
+        // this rotation will result in sizes that cannot be accepted in the scene
+        QMessageBox::information(this, tr("Unacceptable rotation"), tr("The rotation you wish to set up cannot be accepted since the result object will not be able "
+                                                                       "to be placed in the scene at all."), QMessageBox::Ok);
+        return;
+    }
 
     // update item in scene and image handler
     item->setItemRotation(angle);
@@ -1531,6 +1673,15 @@ void MainWindow::closeEvent(QCloseEvent *event)
         saveProfileSlot();
 }
 
+void MainWindow::debugSlot()
+{
+    for(QList<image_handler *>::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+    {
+        int index = (*it)->getIndex();
+        qDebug() << *rolesList->at(index) << " POS: " << (*it)->getPosition() << " LB_CORNER: " << (*it)->getLBCorner() << " ROT: " << (*it)->getItemRotation();
+    }
+}
+
 void MainWindow::initFileLoaderWindow()
 {
     // load init file
@@ -1685,3 +1836,12 @@ void MainWindow::removeAllDisplayedItems()
         displayedItems->removeFirst();
     }
 }
+
+void MainWindow::aboutSlot()
+{
+    QMessageBox::about(this, tr("About Image Dispozer"), tr("<b>Image Dispozer</b><br><br>"
+                                                            "Based on Qt 5.4.1 (MSVC 2010, 32 bit)<br><br>"
+                                                            "Build on 5. 7. 2015, 21:05<br><br>"
+                                                            "Version: 0.1.117"));
+}
+

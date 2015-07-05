@@ -54,3 +54,5 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += \
     icons.qrc
+
+RC_FILE += iconrc.rc

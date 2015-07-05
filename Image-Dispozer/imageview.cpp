@@ -5,6 +5,7 @@ imageView::imageView(imageScene *scene, QWidget * parent)
 {
     rotationSmoothness = 24.0;
     orthogonalRotation = false;
+    lastly_selected = NULL;
 
     // we can now handle our own context menu
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -33,6 +34,27 @@ image_handler *imageView::checkForSingleSelection(bool emit_handler_signal, bool
         // considered as well, use dynamic_cast.
         rect_s = qgraphicsitem_cast<resizeRect * >(scene()->selectedItems().first());
         if(rect_s!=NULL) item = rect_s->imageHandlerP(); // obtain image handler pointer
+
+        lastly_selected = rect_s;
+    }
+    else
+    {
+        resizeRect * temp_rect=NULL;
+        // if lastly_selected is not NULL we will try to find the lastly selected resizeRect
+        Q_FOREACH(QGraphicsItem * item, scene()->selectedItems())
+        {
+            // we will try to find the last selection
+            rect_s = qgraphicsitem_cast<resizeRect * >(item);
+
+            // catch the first resizeRect item in case that we coul not found the lastly selected resizeRect
+            if(temp_rect==NULL && rect_s!=NULL && rect_s!=0) temp_rect = rect_s;
+
+            if(rect_s!=lastly_selected) rect_s->setSelected(false);
+            else temp_rect = rect_s;
+        }
+
+        // now set the value either it is lastly selected rect or not
+        rect_s = temp_rect;
     }
 
     // Sometimes this function is called as a common function and the item is required to get as return value.
@@ -82,6 +104,19 @@ void imageView::wheelEvent(QWheelEvent* event) {
                 if(item!=NULL)
                 {
                     if(orthogonalRotation) angle = ((angle>0.0) ? 90.0 : -90.0);
+
+                    // calculate if such rotation is possible
+                    imageScene * scene = static_cast<imageScene *>(this->scene());
+                    QRectF wrapper = item->imageHandlerP()->calculateWrapperCorners(angle);
+                    int wrapper_width = (int)(wrapper.width()+0.5);
+                    int wrapper_height = (int)(wrapper.height()+0.5);
+                    if(wrapper_width>scene->getHSize() || wrapper_height>scene->getVSize())
+                    {
+                        // this rotation will result in sizes that cannot be accepted in the scene
+                        QMessageBox::information((QWidget *)(this->parent()), tr("Unacceptable rotation"), tr("The rotation you wish to set up cannot be accepted since the result object will not be able "
+                                                                                       "to be placed in the scene at all."), QMessageBox::Ok);
+                        return;
+                    }
 
                     item->incrementRotation(angle);
                     checkIfInside(&item);
@@ -421,6 +456,9 @@ void imageView::showContextMenu(const QPoint &position)
             // If more items or no item was selected, this option will be not enabled so we even do not need to
             // check if pointer is NULL.
             hndlr->setDocked(!hndlr->isDocked());
+
+            // inform main window about this change so it can change the icon for that item
+            emit someItemHasChangedDockedState(hndlr);
         }
     }
 

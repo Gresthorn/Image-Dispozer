@@ -273,16 +273,6 @@
       </layout>
      </widget>
     </item>
-    <item row="0" column="1" rowspan="5">
-     <widget class="QWidget" name="sceneWidget" native="true">
-      <property name="statusTip">
-       <string>Main dispozer scene</string>
-      </property>
-      <property name="whatsThis">
-       <string>This is the main scene where you can dispoze imported images in their correct position and model your own arrangements.</string>
-      </property>
-     </widget>
-    </item>
     <item row="2" column="0">
      <widget class="QWidget" name="buttonsWrapper" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -335,6 +325,53 @@
           <size>
            <width>30</width>
            <height>30</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="displayCompozitionButton">
+         <property name="minimumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>35</width>
+           <height>35</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="toolTip">
+          <string>Shows one item from each group. As result, the composition should be displayed.</string>
+         </property>
+         <property name="statusTip">
+          <string>Shows one item from each group. As result, the composition should be displayed.</string>
+         </property>
+         <property name="whatsThis">
+          <string>After clicking this button, program will try to find at least one linked item in each group and display it in the scene. As a result, complete composition should be displayed.</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="icons.qrc">
+           <normaloff>:/quick_access/icons/composition-icon.png</normaloff>:/quick_access/icons/composition-icon.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
           </size>
          </property>
         </widget>
@@ -417,7 +454,7 @@
          </property>
          <property name="icon">
           <iconset resource="icons.qrc">
-           <normaloff>:/quick_access/icons/portrait-icon.png</normaloff>:/quick_access/icons/portrait-icon.png</iconset>
+           <normaloff>:/quick_access/icons/landscape-icon.png</normaloff>:/quick_access/icons/landscape-icon.png</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -525,12 +562,29 @@
       </item>
       <item>
        <property name="text">
-        <string>Warnings</string>
+        <string>Others</string>
        </property>
        <property name="flags">
         <set>ItemIsEnabled</set>
        </property>
       </item>
+     </widget>
+    </item>
+    <item row="0" column="1" rowspan="6">
+     <widget class="QWidget" name="sceneWidget" native="true">
+      <property name="statusTip">
+       <string>Main dispozer scene</string>
+      </property>
+      <property name="whatsThis">
+       <string>This is the main scene where you can dispoze imported images in their correct position and model your own arrangements.</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QPushButton" name="debugButton">
+      <property name="text">
+       <string>Debug</string>
+      </property>
      </widget>
     </item>
    </layout>
@@ -611,6 +665,7 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuManage"/>
@@ -767,6 +822,11 @@
    </property>
    <property name="text">
     <string>Right rotation</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About...</string>
    </property>
   </action>
  </widget>
