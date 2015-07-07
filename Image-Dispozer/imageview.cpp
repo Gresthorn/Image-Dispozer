@@ -6,6 +6,7 @@ imageView::imageView(imageScene *scene, QWidget * parent)
     rotationSmoothness = 24.0;
     orthogonalRotation = false;
     lastly_selected = NULL;
+    ghost_rect = NULL;
 
     // we can now handle our own context menu
     setContextMenuPolicy(Qt::CustomContextMenu);
@@ -189,10 +190,26 @@ void imageView::mousePressEvent(QMouseEvent *event)
     // if user moved with mouse and emit signal to
     // update group of elements if this is true...
 
-    image_handler * hndl = checkForSingleSelection();
+    resizeRect * rect = NULL;
+    image_handler * hndl = checkForSingleSelection(true, false, &rect);
 
     if(hndl!=NULL && hndl!=0)
     {
+        if(rect!=NULL)
+        {
+            if(ghost_rect!=NULL) delete ghost_rect;
+
+            qreal width = rect->getWrapperRect().width();
+            width = width<0.0 ? -width : width;
+            qreal height = rect->getWrapperRect().height();
+            height = height<0.0 ? -height : height;
+
+            imageScene * i_scene = static_cast<imageScene * >(this->scene());
+            ghost_rect = new ghostRect(width, height, rect->pos(), NULL);
+            ghost_rect->setZValue(i_scene->getZIndex()-1);
+
+            this->scene()->addItem(ghost_rect);
+        }
         cursorMousePressPosition = event->pos();
     }
 }
@@ -378,6 +395,12 @@ void imageView::mouseReleaseEvent(QMouseEvent *event)
         {
             emit someItemHasMoved(hndl);
         }
+    }
+
+    if(ghost_rect!=NULL)
+    {
+        delete ghost_rect;
+        ghost_rect = NULL;
     }
 }
 

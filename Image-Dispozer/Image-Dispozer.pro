@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     maincfgdialog.cpp \
     smscontentsdialog.cpp \
     sound_handler.cpp \
-    soundselector.cpp
+    soundselector.cpp \
+    ghostrect.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -43,7 +44,8 @@ HEADERS  += mainwindow.h \
     maincfgdialog.h \
     smscontentsdialog.h \
     sound_handler.h \
-    soundselector.h
+    soundselector.h \
+    ghostrect.h
 
 FORMS    += mainwindow.ui \
     imageselector.ui \

@@ -11,6 +11,7 @@
 #include <QMouseEvent>
 
 #include "resizerect.h"
+#include "ghostrect.h"
 #include "imagescene.h"
 
 class imageView : public QGraphicsView
@@ -27,6 +28,8 @@ private:
     int vSize, hSize;
 
     class resizeRect * lastly_selected;
+
+    ghostRect * ghost_rect;
 
 public:
     imageView(imageScene * scene, QWidget * parent = NULL);

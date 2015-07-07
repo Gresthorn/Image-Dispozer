@@ -133,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionResize_on_ratio_change->setVisible(false);
 
     // THIS IS ONLY DEBUG BUTTON, HIDE IF NOT NEEDED
-    ui->debugButton->setHidden(false);
+    ui->debugButton->setHidden(true);
     connect(ui->debugButton, SIGNAL(clicked()), this, SLOT(debugSlot()));
 }
 
@@ -256,6 +256,7 @@ void MainWindow::initializeTreeItems()
         imageItems->last()->setPosition(QPointF(hSize/2.0, vSize/2.0));
     }
 
+    // FOR TEST PURPOSES
     /*imageItems->first()->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_086.bmp"));
     imageItems->first()->setPosition(QPointF(100.0, 100.0));
     imageItems->at(2)->setImage(QString("D:/Programovanie/Image-Dispozer/DISPLAY_APP/SD_CONTENT/BMP/pic_085.bmp"));
