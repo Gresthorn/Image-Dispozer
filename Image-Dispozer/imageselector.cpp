@@ -196,8 +196,6 @@ void ImageSelector::unlinkSelectedItems()
             int index = item->data(1, Qt::UserRole).toInt();
             QString img_path = imageItems->at(index)->getTempImagePath();
 
-            qDebug() << img_path;
-
             imageItems->at(index)->clearTempImagePath();
             // imageItems->at(index)->discardImage(); // OLD CODE
 

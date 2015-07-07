@@ -561,12 +561,16 @@ void resizeRect::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
 void resizeRect::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
     // show the selected item on the top of colliding items
-    int curr_z_index = this->zValue();
-    Q_FOREACH(QGraphicsItem * item, collidingItems())
+    //int curr_z_index = this->zValue();
+    /*Q_FOREACH(QGraphicsItem * item, collidingItems())
     {
         if(item->zValue()>=curr_z_index) curr_z_index = item->zValue()+1;
-    }
-    this->setZValue(curr_z_index);
+    }*/
+
+    // new method of setting z index - quicker (scene stores the lastly set highest z-index)
+    imageScene * i_scene = static_cast<imageScene * >(this->scene());
+    i_scene->incrementZIndex();
+    this->setZValue(i_scene->getZIndex());
 
     QPointF ePos = event->pos();
 

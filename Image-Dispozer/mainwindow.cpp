@@ -455,9 +455,14 @@ void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row, bool display
             // set item handler status of currently displayed boolean to true
             imageItems->at(index)->setCurrentlyDisplayed(true);
             r_rect->setPixmap(imageItems->at(index));
+            scene->incrementZIndex();
+            r_rect->setZValue(scene->getZIndex());
 
             // check for mode, if SINGLE mode is enabled, we will clear other images in scene before adding new
-            if(!displayComposition) if(image_mode==SINGLE) removeAllDisplayedItems();
+            if(!displayComposition)
+            {
+                if(image_mode==SINGLE) removeAllDisplayedItems();
+            }
 
             displayedItems->append(r_rect);
 
@@ -468,12 +473,26 @@ void MainWindow::displayNewRectItem(QTreeWidgetItem *item, int row, bool display
         }
         else ui->statusBar->showMessage(tr("This element has not been associated yet"));
     }
-    else ui->statusBar->showMessage(tr("This element is already displayed"));
+    else
+    {
+        // if item is displayed, we will at least set the new z-index to it, so the item will be visible at the top
+        for(QList<resizeRect * >::iterator it = displayedItems->begin(); it!=displayedItems->end(); it++)
+        {
+            if((*it)->imageHandlerP()==imageItems->at(index))
+            {
+                // update z-value of currently displayed item
+                scene->incrementZIndex();
+                (*it)->setZValue(scene->getZIndex());
+            }
+        }
+
+        ui->statusBar->showMessage(tr("This element is already displayed"));
+    }
 }
 
 void MainWindow::displayCompositionSlot()
 {
-    hideDisplayedItems();
+    removeAllDisplayedItems();
 
     bool no_item_found = true;
     // we will try to fing at least one linked item in each group and display it in the scene
@@ -1832,9 +1851,12 @@ void MainWindow::removeAllDisplayedItems()
 {
     while(!displayedItems->isEmpty())
     {
+        displayedItems->first()->imageHandlerP()->setCurrentlyDisplayed(false);
         displayedItems->first()->deleteLater();
         displayedItems->removeFirst();
     }
+
+    scene->setZIndex(0);
 }
 
 void MainWindow::aboutSlot()
