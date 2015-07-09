@@ -2,7 +2,7 @@
 #include "ui_smscontentsdialog.h"
 
 smsContentsDialog::smsContentsDialog(bool *startSmsEnable, bool *statSmsEnable, bool *alarmSmsEnable, bool *protoSmsEnable,
-                                     QString *startSmsText, QString *statSmsText, QString *alarmSmsText, QString *protoSmsText, QWidget *parent) :
+                                     QString *startSmsText, QString *statSmsText, QString *alarmSmsText, QString *protoSmsText, bool *changed, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::smsContentsDialog)
 {
@@ -17,6 +17,8 @@ smsContentsDialog::smsContentsDialog(bool *startSmsEnable, bool *statSmsEnable, 
     statSmsText_p = statSmsText;
     alarmSmsText_p = alarmSmsText;
     protoSmsText_p = protoSmsText;
+
+    changed_t = changed;
 
     ui->startSmsEdit->setText(*startSmsText_p);
     ui->statSmsEdit->setText(*statSmsText_p);
@@ -147,6 +149,8 @@ void smsContentsDialog::accepted()
     *statSmsEnable_p = ui->statSmsEnabled->isChecked();
     *alarmSmsEnable_p = ui->alarmSmsEnabled->isChecked();
     *protoSmsEnable_p = ui->protoSmsEnabled->isChecked();
+
+    *changed_t = true;
 
     this->close();
 }

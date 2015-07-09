@@ -617,6 +617,7 @@
     <addaction name="actionMain_CFG"/>
     <addaction name="actionContact_data"/>
     <addaction name="actionSms_contents"/>
+    <addaction name="actionAPN_settings"/>
    </widget>
    <widget class="QMenu" name="menuManage">
     <property name="title">
@@ -827,6 +828,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About...</string>
+   </property>
+  </action>
+  <action name="actionAPN_settings">
+   <property name="text">
+    <string>APN settings</string>
    </property>
   </action>
  </widget>

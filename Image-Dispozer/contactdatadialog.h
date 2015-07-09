@@ -18,7 +18,7 @@ class contactDataDialog : public QDialog
 public:
     explicit contactDataDialog(QString * start, QString * stat, QString * alarm, QString * proto,
                                QString *callNum1, QString *callNum2, QString *callNum3, QString *callNum4,
-                               QWidget *parent = 0);
+                               bool * changed, QWidget *parent = 0);
     ~contactDataDialog();
 
 private:
@@ -32,6 +32,8 @@ private:
     QString * call_number_2;
     QString * call_number_3;
     QString * call_number_4;
+
+    bool * changed_t;
 
 public slots:
     void accepted(void);

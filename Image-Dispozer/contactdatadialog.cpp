@@ -2,7 +2,7 @@
 #include "ui_contactdatadialog.h"
 
 contactDataDialog::contactDataDialog(QString * start, QString * stat, QString * alarm, QString * proto,
-                                     QString * callNum1, QString * callNum2, QString * callNum3, QString * callNum4,
+                                     QString * callNum1, QString * callNum2, QString * callNum3, QString * callNum4, bool *changed,
                                      QWidget *parent) :
     QDialog(parent),
     ui(new Ui::contactDataDialog)
@@ -27,6 +27,8 @@ contactDataDialog::contactDataDialog(QString * start, QString * stat, QString * 
     ui->callNumEdit2->setText(*call_number_2);
     ui->callNumEdit3->setText(*call_number_3);
     ui->callNumEdit4->setText(*call_number_4);
+
+    changed_t = changed;
 
     connect(ui->confirmationButton, SIGNAL(clicked()), this, SLOT(accepted()));
     connect(ui->cancelButton, SIGNAL(clicked()), this, SLOT(close()));
@@ -105,6 +107,8 @@ void contactDataDialog::accepted()
     call_number_3->append(ui->callNumEdit3->text());
     call_number_4->clear();
     call_number_4->append(ui->callNumEdit4->text());
+
+    *changed_t = true;
 
     this->close();
 }

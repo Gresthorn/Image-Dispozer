@@ -37,6 +37,7 @@
 #include "contactdatadialog.h"
 #include "maincfgdialog.h"
 #include "smscontentsdialog.h"
+#include "apnsettingsdialog.h"
 
 namespace Ui {
 class MainWindow;
@@ -129,6 +130,16 @@ private:
     bool ack_banel_error;
     int volume;
 
+    QString ap_name;
+    QString login;
+    QString password;
+    bool request_password;
+    bool use_proxy;
+    address_mode addr_mode;
+    QString address;
+    QString DNS1;
+    QString DNS2;
+
 
     void setHandlerRealPosition(int x, int y, resizeRect *item);
     void setHandlerRealPosition(qreal x, qreal y, image_handler * item);
@@ -139,6 +150,7 @@ private:
 
     void initializeTreeItems(void);
     bool checkCompletitionImageItems(void);
+    bool checkCompletitionNetworkConfig(void);
     bool checkCompletitionSoundsItems(QString * error_filepaths);
     bool checkCompletitionContacts(void);
     void updateRolesListWidget(void);
@@ -163,6 +175,7 @@ public slots:
     void contactDataWindow(void);
     void mainCfgWindow(void);
     void smsContentsWindow(void);
+    void apnConfigurationWindow(void);
 
     void displayNewRectItem(QTreeWidgetItem * item, int row, bool displayComposition = false);
     void displayCompositionSlot(void);

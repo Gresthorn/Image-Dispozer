@@ -30,7 +30,7 @@ class mainCFGDialog : public QDialog
 
 public:
     explicit mainCFGDialog(int *period, QString * per_units, QString *lan,
-                           bool * ack_banel_error, int * volume, QWidget *parent = 0);
+                           bool * ack_banel_error, int * volume, bool * changed, QWidget *parent = 0);
     ~mainCFGDialog();
 
 private:
@@ -41,6 +41,8 @@ private:
     QString * lan_p;
     bool * ack_banel_error_p;
     int * volume_p;
+
+    bool * changed_t;
 
 public slots:
     void accepted(void);

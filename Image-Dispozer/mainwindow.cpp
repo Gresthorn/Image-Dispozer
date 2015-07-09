@@ -8,7 +8,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    this->setWindowFlags(Qt::WindowContextHelpButtonHint | Qt::WindowCloseButtonHint);
+    // uncomment the following line if you want to enable context help button
+    //this->setWindowFlags(Qt::WindowContextHelpButtonHint | Qt::WindowCloseButtonHint);
 
 
     // set the transformation base - there is only one [0, 0] for both - LANDSCAPE and PORTRAIT mode
@@ -114,6 +115,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRight_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
     connect(ui->actionLeft_rotation, SIGNAL(triggered(bool)), this, SLOT(transformationRotationModeChange(bool)));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(aboutSlot()));
+    connect(ui->actionAPN_settings, SIGNAL(triggered()), this, SLOT(apnConfigurationWindow()));
 
     connect(ui->rolesListWidget, SIGNAL(itemDoubleClicked(QTreeWidgetItem*,int)), SLOT(displayNewRectItem(QTreeWidgetItem*,int)));
     connect(ui->clearSceneItemsButton, SIGNAL(clicked()), this, SLOT(removeAllDisplayedItems()));
@@ -314,6 +316,19 @@ bool MainWindow::checkCompletitionContacts()
        !call_number_3.isEmpty() &&
        !call_number_4.isEmpty()) return true;
     else return false;
+
+    return false;
+}
+
+bool MainWindow::checkCompletitionNetworkConfig(void)
+{
+    if(ap_name.isEmpty() ||
+       login.isEmpty() ||
+       password.isEmpty() ||
+       address.isEmpty() ||
+       DNS1.isEmpty() ||
+       DNS2.isEmpty()) return false;
+    else return true;
 
     return false;
 }
@@ -531,14 +546,22 @@ void MainWindow::togglePortraitLandscapeMode(bool just_update)
     if(ratio_mode==LANDSCAPE)
     {
         // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
-        if(!just_update) ratio_mode = PORTRAIT;
-        ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/landscape-icon.png"));
+        if(!just_update)
+        {
+            ratio_mode = PORTRAIT;
+            ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/landscape-icon.png"));
+        }
+        else ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
     }
     else if(ratio_mode==PORTRAIT)
     {
         // if just update is false, we will also switch the mode, else this function will behave like update to currently set mode
-        if(!just_update) ratio_mode = LANDSCAPE;
-        ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
+        if(!just_update)
+        {
+            ratio_mode = LANDSCAPE;
+            ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/portrait-icon.png"));
+        }
+        else ui->switchPortraitLandscapeButton->setIcon(QIcon(":/quick_access/icons/landscape-icon.png"));
     }
 
     if(!just_update)
@@ -1382,6 +1405,17 @@ void MainWindow::exportDataSlot()
     }
     else
     {
+        // Since in network configuration some of parameters can remain empty, we will only notify
+        // user here but allow him to continue even without filling them
+        if(!checkCompletitionNetworkConfig())
+        {
+            QMessageBox::StandardButton answer;
+            answer = QMessageBox::question(this, tr("Uncomplete APN configuration"), tr("The APN configuration seems to be incomplete. Some of fields are empty. Do you wish to continue?"),
+                                  QMessageBox::Yes | QMessageBox::No);
+            if(answer==QMessageBox::No) return;
+        }
+
+
         // select directory to extract all data
         QString path = QFileDialog::getExistingDirectory(this, tr("Select directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
 
@@ -1512,6 +1546,33 @@ void MainWindow::exportDataSlot()
         wav_cfg.close();
         delete wav_cfg_stream;
 
+        // apn_cfg.txt
+        QFile apn_cfg(path+"/SD_CONTENT/apn_cfg.txt");
+        apn_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
+        QTextStream * apn_cfg_stream = new QTextStream(&apn_cfg);
+        *apn_cfg_stream << "APN: " << ap_name << endl;
+        *apn_cfg_stream << "login: " << login << endl;
+        *apn_cfg_stream << "password: " << password << endl;
+        *apn_cfg_stream << "request_password: " << (request_password ? "YES" : "NO") << endl;
+        *apn_cfg_stream << "use_proxy: " << (use_proxy ? "YES" : "NO") << endl;
+        switch(addr_mode)
+        {
+            case IP_ADDR:
+                *apn_cfg_stream << "address_mode: " << "IP" << endl;
+                break;
+            case TEXT:
+                *apn_cfg_stream << "address_mode: " << "TEXT" << endl;
+                break;
+            default:
+                *apn_cfg_stream << "address_mode: " << "TEXT" << endl;
+                break;
+        }
+        *apn_cfg_stream << "address: " << address << endl;
+        *apn_cfg_stream << "DNS1: " << DNS1 << endl;
+        *apn_cfg_stream << "DNS2: " << DNS2 << endl;
+
+        apn_cfg.close();
+        delete apn_cfg_stream;
     }
 }
 
@@ -1637,6 +1698,19 @@ void MainWindow::saveProfileSlot()
         setts.setValue("protosmsnumber", proto_sms_number);
         setts.endGroup();
 
+        // save the apn configuration
+        setts.beginGroup("network");
+        setts.setValue("apname", ap_name);
+        setts.setValue("login", login);
+        setts.setValue("password", password);
+        setts.setValue("requestpassword", request_password);
+        setts.setValue("useproxy", use_proxy);
+        setts.setValue("addrmode", addr_mode);
+        setts.setValue("address", address);
+        setts.setValue("dns1", DNS1);
+        setts.setValue("dns2", DNS2);
+        setts.endGroup();
+
         // save all paths to all images
         setts.beginGroup("elements");
         int index;
@@ -1753,6 +1827,20 @@ void MainWindow::initFileLoaderWindow()
     call_number_3 = setts.value(QString("%1/callnum3").arg(section), QString("")).toString();
     call_number_4 = setts.value(QString("%1/callnum4").arg(section), QString("")).toString();
 
+    // load apn configuration
+    section.clear();
+    section.append("network");
+
+    ap_name = setts.value(QString("%1/apname").arg(section), QString("")).toString();
+    login = setts.value(QString("%1/login").arg(section), QString("")).toString();
+    password = setts.value(QString("%1/password").arg(section), QString("")).toString();
+    request_password = setts.value(QString("%1/requestpassword").arg(section), true).toBool();
+    use_proxy = setts.value(QString("%1/useproxy").arg(section), true).toBool();
+    addr_mode = (address_mode)(setts.value(QString("%1/addrmode").arg(section), 0).toInt());
+    address = setts.value(QString("%1/address").arg(section), QString("")).toString();
+    DNS1 = setts.value(QString("%1/dns1").arg(section), QString("")).toString();
+    DNS2 = setts.value(QString("%1/dns2").arg(section), QString("")).toString();
+
     // load config
     section.clear();
     section.append("config");
@@ -1830,20 +1918,28 @@ void MainWindow::initFileLoaderWindow()
 void MainWindow::contactDataWindow()
 {
     contactDataDialog dialog(&start_sms_number, &stat_sms_number, &alarm_sms_number, &proto_sms_number,
-                             &call_number_1, &call_number_2, &call_number_3, &call_number_4, this);
+                             &call_number_1, &call_number_2, &call_number_3, &call_number_4, &something_changed, this);
     dialog.exec();
 }
 
 void MainWindow::mainCfgWindow()
 {
-    mainCFGDialog dialog(&period, &per_units, &lan, &ack_banel_error, &volume, this);
+    mainCFGDialog dialog(&period, &per_units, &lan, &ack_banel_error, &volume, &something_changed, this);
     dialog.exec();
 }
 
 void MainWindow::smsContentsWindow()
 {
     smsContentsDialog dialog(&start_sms_enabled, &stat_sms_enabled, &alarm_sms_enabled, &proto_sms_enabled,
-                             &start_sms_text, &stat_sms_text, &alarm_sms_text, &proto_sms_text, this);
+                             &start_sms_text, &stat_sms_text, &alarm_sms_text, &proto_sms_text, &something_changed, this);
+    dialog.exec();
+}
+
+void MainWindow::apnConfigurationWindow()
+{
+    apnSettingsDialog dialog(&ap_name, &login, &password, &request_password, &use_proxy,
+                             &addr_mode, &address, &DNS1, &DNS2, &something_changed, this);
+
     dialog.exec();
 }
 
@@ -1865,6 +1961,6 @@ void MainWindow::aboutSlot()
     QMessageBox::about(this, tr("About Image Dispozer"), tr("<b>Image Dispozer</b><br><br>"
                                                             "Based on Qt 5.4.1 (MSVC 2010, 32 bit)<br><br>"
                                                             "Build on 5. 7. 2015, 21:05<br><br>"
-                                                            "Version: 0.1.117"));
+                                                            "Version: 0.1.134"));
 }
 

@@ -17,7 +17,8 @@ class smsContentsDialog : public QDialog
 
 public:
     explicit smsContentsDialog(bool *startSmsEnable, bool *statSmsEnable, bool *alarmSmsEnable, bool *protoSmsEnable,
-                               QString *startSmsText, QString *statSmsText, QString *alarmSmsText, QString *protoSmsText, QWidget *parent = 0);
+                               QString *startSmsText, QString *statSmsText, QString *alarmSmsText, QString *protoSmsText,
+                               bool * changed, QWidget *parent = 0);
     ~smsContentsDialog();
 
 private:
@@ -32,6 +33,8 @@ private:
     QString *statSmsText_p;
     QString *alarmSmsText_p;
     QString *protoSmsText_p;
+
+    bool * changed_t;
 
 public slots:
     void accepted(void);

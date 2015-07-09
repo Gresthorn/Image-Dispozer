@@ -28,7 +28,8 @@ SOURCES += main.cpp\
     smscontentsdialog.cpp \
     sound_handler.cpp \
     soundselector.cpp \
-    ghostrect.cpp
+    ghostrect.cpp \
+    apnsettingsdialog.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -45,14 +46,16 @@ HEADERS  += mainwindow.h \
     smscontentsdialog.h \
     sound_handler.h \
     soundselector.h \
-    ghostrect.h
+    ghostrect.h \
+    apnsettingsdialog.h
 
 FORMS    += mainwindow.ui \
     imageselector.ui \
     contactdatadialog.ui \
     maincfgdialog.ui \
     smscontentsdialog.ui \
-    soundselector.ui
+    soundselector.ui \
+    apnsettingsdialog.ui
 
 RESOURCES += \
     icons.qrc

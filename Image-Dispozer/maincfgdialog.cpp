@@ -1,7 +1,7 @@
 #include "maincfgdialog.h"
 #include "ui_maincfgdialog.h"
 
-mainCFGDialog::mainCFGDialog(int *period, QString *per_units, QString *lan, bool *ack_banel_error, int *volume, QWidget *parent) :
+mainCFGDialog::mainCFGDialog(int *period, QString *per_units, QString *lan, bool *ack_banel_error, int *volume, bool * changed, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::mainCFGDialog)
 {
@@ -12,6 +12,7 @@ mainCFGDialog::mainCFGDialog(int *period, QString *per_units, QString *lan, bool
     lan_p = lan;
     ack_banel_error_p = ack_banel_error;
     volume_p = volume;
+    changed_t = changed;
 
     ui->contactPeriodEdit->setValue(*period_p);
 
@@ -78,6 +79,8 @@ void mainCFGDialog::accepted()
     else if(ui->gsmVolumeEdit->currentIndex()==3) *volume_p=-18;
     else if(ui->gsmVolumeEdit->currentIndex()==4) *volume_p=-24;
     else *volume_p=0;
+
+    *changed_t = true;
 
     this->close();
 }
