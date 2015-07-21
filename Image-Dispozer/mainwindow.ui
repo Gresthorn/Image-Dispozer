@@ -661,6 +661,8 @@
     <addaction name="menuResolution"/>
     <addaction name="menuImage_objects"/>
     <addaction name="menuTransformations"/>
+    <addaction name="separator"/>
+    <addaction name="actionSelect_exports"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -833,6 +835,11 @@
   <action name="actionAPN_settings">
    <property name="text">
     <string>APN settings</string>
+   </property>
+  </action>
+  <action name="actionSelect_exports">
+   <property name="text">
+    <string>Select exports</string>
    </property>
   </action>
  </widget>

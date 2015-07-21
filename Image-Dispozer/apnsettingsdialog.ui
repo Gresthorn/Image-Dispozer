@@ -25,6 +25,12 @@
   <property name="windowTitle">
    <string>APN configuration</string>
   </property>
+  <property name="statusTip">
+   <string>Access point name/alias</string>
+  </property>
+  <property name="whatsThis">
+   <string>Use this box to enter the name/alias of access point which the device should connect to</string>
+  </property>
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="9" column="1">
     <widget class="QWidget" name="buttonWrapperWidget" native="true">
@@ -70,6 +76,12 @@
    </item>
    <item row="4" column="1">
     <widget class="QCheckBox" name="useProxyCheckBox">
+     <property name="statusTip">
+      <string>Enable/disable proxy</string>
+     </property>
+     <property name="whatsThis">
+      <string>Enable/disable using proxy server.</string>
+     </property>
      <property name="text">
       <string>Use proxy</string>
      </property>
@@ -117,6 +129,12 @@
    </item>
    <item row="3" column="1">
     <widget class="QCheckBox" name="requestPassCheckBox">
+     <property name="statusTip">
+      <string>Enable/disable password request.</string>
+     </property>
+     <property name="whatsThis">
+      <string>If you check this box, the password will be requested as a condition for successfull network login.</string>
+     </property>
      <property name="text">
       <string>Request password</string>
      </property>
@@ -143,10 +161,23 @@
     </widget>
    </item>
    <item row="2" column="1">
-    <widget class="QLineEdit" name="passwordEdit"/>
+    <widget class="QLineEdit" name="passwordEdit">
+     <property name="statusTip">
+      <string>Password for network access</string>
+     </property>
+     <property name="whatsThis">
+      <string>This field allows you to save the password for your network login.</string>
+     </property>
+    </widget>
    </item>
    <item row="5" column="1">
     <widget class="QComboBox" name="addressModeComboBox">
+     <property name="statusTip">
+      <string>Address mode of content in &quot;Address&quot; field</string>
+     </property>
+     <property name="whatsThis">
+      <string>This selector allows you to specify the mode of address given in &quot;Address&quot; field. Use IP address mode for &quot;http://XXX.XXX.XXX.XXX/...&quot; format or Text mode for &quot;http://your.url.com/...&quot; format. </string>
+     </property>
      <item>
       <property name="text">
        <string>IP address</string>
@@ -160,7 +191,14 @@
     </widget>
    </item>
    <item row="1" column="1">
-    <widget class="QLineEdit" name="loginEdit"/>
+    <widget class="QLineEdit" name="loginEdit">
+     <property name="statusTip">
+      <string>Log in name/alias</string>
+     </property>
+     <property name="whatsThis">
+      <string>This field allows you to specify the log in name for getting the access to network</string>
+     </property>
+    </widget>
    </item>
    <item row="8" column="0">
     <widget class="QLabel" name="dns2Label">
@@ -173,16 +211,50 @@
     </widget>
    </item>
    <item row="8" column="1">
-    <widget class="QLineEdit" name="dns2Edit"/>
+    <widget class="QLineEdit" name="dns2Edit">
+     <property name="statusTip">
+      <string>IP address of DNS2</string>
+     </property>
+     <property name="whatsThis">
+      <string>IP address of secondary DNS server to be used by device.</string>
+     </property>
+    </widget>
    </item>
    <item row="7" column="1">
-    <widget class="QLineEdit" name="dns1Edit"/>
+    <widget class="QLineEdit" name="dns1Edit">
+     <property name="statusTip">
+      <string>IP address of DNS1</string>
+     </property>
+     <property name="whatsThis">
+      <string>IP address of primary DNS server to be used by device.</string>
+     </property>
+    </widget>
    </item>
    <item row="6" column="1">
-    <widget class="QLineEdit" name="addressEdit"/>
+    <widget class="QLineEdit" name="addressEdit">
+     <property name="statusTip">
+      <string>Address of target to connect</string>
+     </property>
+     <property name="whatsThis">
+      <string>This field store the target to connect in Text or IP adress mode.</string>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>apnEdit</tabstop>
+  <tabstop>loginEdit</tabstop>
+  <tabstop>passwordEdit</tabstop>
+  <tabstop>requestPassCheckBox</tabstop>
+  <tabstop>useProxyCheckBox</tabstop>
+  <tabstop>addressModeComboBox</tabstop>
+  <tabstop>addressEdit</tabstop>
+  <tabstop>dns1Edit</tabstop>
+  <tabstop>dns2Edit</tabstop>
+  <tabstop>acceptButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

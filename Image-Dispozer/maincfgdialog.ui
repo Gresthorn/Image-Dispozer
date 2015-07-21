@@ -38,6 +38,12 @@
    </item>
    <item row="1" column="1">
     <widget class="QComboBox" name="periodUnitsEdit">
+     <property name="statusTip">
+      <string>Time unit to be used for period number</string>
+     </property>
+     <property name="whatsThis">
+      <string>Time unit which will give the real time period together with &quot;Contact period&quot;.</string>
+     </property>
      <item>
       <property name="text">
        <string>Minutes</string>
@@ -62,6 +68,12 @@
    </item>
    <item row="0" column="1">
     <widget class="QSpinBox" name="contactPeriodEdit">
+     <property name="statusTip">
+      <string>SMS sending period measured in &quot;Contact period units&quot;</string>
+     </property>
+     <property name="whatsThis">
+      <string>SMS about device status will be sent periodically after time specified in this field.</string>
+     </property>
      <property name="value">
       <number>60</number>
      </property>
@@ -99,6 +111,12 @@
    </item>
    <item row="3" column="1">
     <widget class="QComboBox" name="ackEdit">
+     <property name="statusTip">
+      <string>Enable or disable device ACKs</string>
+     </property>
+     <property name="whatsThis">
+      <string>Use this checkbox to generate setup enabling or disabling device's ACKs.</string>
+     </property>
      <item>
       <property name="text">
        <string>Yes</string>
@@ -157,6 +175,12 @@
    </item>
    <item row="4" column="1">
     <widget class="QComboBox" name="gsmVolumeEdit">
+     <property name="statusTip">
+      <string>GSM speech volume level</string>
+     </property>
+     <property name="whatsThis">
+      <string>Specifies the volume level used during GSM calls.</string>
+     </property>
      <item>
       <property name="text">
        <string>0dB</string>
@@ -186,6 +210,12 @@
    </item>
    <item row="2" column="1">
     <widget class="QComboBox" name="languageEdit">
+     <property name="statusTip">
+      <string>Device language setting</string>
+     </property>
+     <property name="whatsThis">
+      <string>Use this selector to specify the language in which information will be displayed in device.</string>
+     </property>
      <item>
       <property name="text">
        <string>ENG</string>
@@ -230,6 +260,15 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>contactPeriodEdit</tabstop>
+  <tabstop>periodUnitsEdit</tabstop>
+  <tabstop>languageEdit</tabstop>
+  <tabstop>ackEdit</tabstop>
+  <tabstop>gsmVolumeEdit</tabstop>
+  <tabstop>confirmationButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

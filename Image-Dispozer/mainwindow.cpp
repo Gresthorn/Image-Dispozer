@@ -93,6 +93,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     per_units = QString("hours");
     lan = QString("ENG");
+    data_to_export.apnExpEnable = true;
+    data_to_export.contactExpEnable = true;
+    data_to_export.deviceExpEnable = true;
+    data_to_export.imagesExpEnable = true;
+    data_to_export.smsExpEnable = true;
+    data_to_export.soundsExpEnable = true;
 
     connect(ui->actionImport, SIGNAL(triggered()), this, SLOT(imageSelectorWindow()));
     connect(ui->actionSounds, SIGNAL(triggered()), this, SLOT(soundSelectorWindow()));
@@ -102,6 +108,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionContact_data, SIGNAL(triggered()), this, SLOT(contactDataWindow()));
     connect(ui->actionMain_CFG, SIGNAL(triggered()), this, SLOT(mainCfgWindow()));
     connect(ui->actionSms_contents, SIGNAL(triggered()), this, SLOT(smsContentsWindow()));
+    connect(ui->actionSelect_exports, SIGNAL(triggered()), this, SLOT(selectExportsWindow()));
     connect(ui->actionExport, SIGNAL(triggered()), this, SLOT(exportDataSlot()));
     connect(ui->action240_x_320, SIGNAL(triggered(bool)), this, SLOT(resolutionChangedSlot(bool)));
     connect(ui->action320_x_480, SIGNAL(triggered(bool)), this, SLOT(resolutionChangedSlot(bool)));
@@ -1382,7 +1389,7 @@ void MainWindow::exportDataSlot()
 {
     QString error_sound_paths; // catch missing sound files so they can be displayed for users as notification
 
-    if(!checkCompletitionSoundsItems(&error_sound_paths))
+    if(!checkCompletitionSoundsItems(&error_sound_paths) && data_to_export.soundsExpEnable)
     {
         if(error_sound_paths.isEmpty())
         {
@@ -1394,12 +1401,12 @@ void MainWindow::exportDataSlot()
             QMessageBox::warning(this, tr("Missing sound files"), tr("The following sound files could not be found.\n\n")+error_sound_paths, QMessageBox::Ok);
         }
     }
-    else if(!checkCompletitionImageItems())
+    else if(!checkCompletitionImageItems() && data_to_export.imagesExpEnable)
     {
         QMessageBox::warning(this, tr("List linking not complete (images)"), tr("Some items in roles list are still not correctly linked with image.\n"
                                                                        "Please, complete the linking before export can begin..."), QMessageBox::Ok);
     }
-    else if(!checkCompletitionContacts())
+    else if(!checkCompletitionContacts() && data_to_export.contactExpEnable)
     {
         QMessageBox::warning(this, tr("Contacts not filled"), tr("You must fill all contact fields (tel. numbers) before export."), QMessageBox::Ok);
     }
@@ -1407,7 +1414,7 @@ void MainWindow::exportDataSlot()
     {
         // Since in network configuration some of parameters can remain empty, we will only notify
         // user here but allow him to continue even without filling them
-        if(!checkCompletitionNetworkConfig())
+        if(!checkCompletitionNetworkConfig() && data_to_export.apnExpEnable)
         {
             QMessageBox::StandardButton answer;
             answer = QMessageBox::question(this, tr("Uncomplete APN configuration"), tr("The APN configuration seems to be incomplete. Some of fields are empty. Do you wish to continue?"),
@@ -1435,144 +1442,168 @@ void MainWindow::exportDataSlot()
         // now all neccessary folder are present, we can start export to the text files
 
         // call_nums.txt
-        QFile call_nums(path+"/CFG_CONTENT/call_nums.txt");
-        call_nums.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * call_nums_stream = new QTextStream(&call_nums);
-        *call_nums_stream << "call number 1: " << call_number_1 << endl;
-        *call_nums_stream << "call number 2: " << call_number_2 << endl;
-        *call_nums_stream << "call number 3: " << call_number_3 << endl;
-        *call_nums_stream << "call number 4: " << call_number_4 << endl;
-        call_nums.close();
-        delete call_nums_stream;
+        if(data_to_export.contactExpEnable)
+        {
+            QFile call_nums(path+"/CFG_CONTENT/call_nums.txt");
+            call_nums.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * call_nums_stream = new QTextStream(&call_nums);
+            *call_nums_stream << "call number 1: " << call_number_1 << endl;
+            *call_nums_stream << "call number 2: " << call_number_2 << endl;
+            *call_nums_stream << "call number 3: " << call_number_3 << endl;
+            *call_nums_stream << "call number 4: " << call_number_4 << endl;
+            call_nums.close();
+            delete call_nums_stream;
+        }
 
         // settings.txt
-        QFile settings(path+"/CFG_CONTENT/settings.txt");
-        settings.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * settings_stream = new QTextStream(&settings);
-        *settings_stream << "#value in units" << endl << "period: " << period << endl << endl;
-        *settings_stream << "#units of period: mins, hours, days, months" << endl << "per_units: " << per_units << endl << endl;
-        *settings_stream << "#ENG, SVK, PLN, HUN, GER, CZE" << endl << "language: " << lan << endl << endl;
-        *settings_stream << "#YES,NO" << endl << "ack banel error: " << (ack_banel_error ? "YES" : "NO") << endl << endl;
-        *settings_stream << "#value in dB: -24,-18, -12, -6, 0" << endl << "volume: " << volume << endl << endl;
-        settings.close();
-        delete settings_stream;
+        if(data_to_export.deviceExpEnable)
+        {
+            QFile settings(path+"/CFG_CONTENT/settings.txt");
+            settings.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * settings_stream = new QTextStream(&settings);
+            *settings_stream << "#value in units" << endl << "period: " << period << endl << endl;
+            *settings_stream << "#units of period: mins, hours, days, months" << endl << "per_units: " << per_units << endl << endl;
+            *settings_stream << "#ENG, SVK, PLN, HUN, GER, CZE" << endl << "language: " << lan << endl << endl;
+            *settings_stream << "#YES,NO" << endl << "ack banel error: " << (ack_banel_error ? "YES" : "NO") << endl << endl;
+            *settings_stream << "#value in dB: -24,-18, -12, -6, 0" << endl << "volume: " << volume << endl << endl;
+            settings.close();
+            delete settings_stream;
+        }
 
-        // sms_alarm.txt
-        QFile sms_alarm(path+"/CFG_CONTENT/sms_alarm.txt");
-        sms_alarm.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * sms_alarm_stream = new QTextStream(&sms_alarm);
-        *sms_alarm_stream << alarm_sms_text;
-        sms_alarm.close();
-        delete sms_alarm_stream;
+        if(data_to_export.smsExpEnable)
+        {
+            // sms_alarm.txt
+            QFile sms_alarm(path+"/CFG_CONTENT/sms_alarm.txt");
+            sms_alarm.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * sms_alarm_stream = new QTextStream(&sms_alarm);
+            *sms_alarm_stream << alarm_sms_text;
+            sms_alarm.close();
+            delete sms_alarm_stream;
 
-        // sms_start.txt
-        QFile sms_start(path+"/CFG_CONTENT/sms_start.txt");
-        sms_start.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * sms_start_stream = new QTextStream(&sms_start);
-        *sms_start_stream << start_sms_text;
-        sms_start.close();
-        delete sms_start_stream;
+            // sms_start.txt
+            QFile sms_start(path+"/CFG_CONTENT/sms_start.txt");
+            sms_start.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * sms_start_stream = new QTextStream(&sms_start);
+            *sms_start_stream << start_sms_text;
+            sms_start.close();
+            delete sms_start_stream;
 
-        // sms_stat.txt
-        QFile sms_stat(path+"/CFG_CONTENT/sms_stat.txt");
-        sms_stat.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * sms_stat_stream = new QTextStream(&sms_stat);
-        *sms_stat_stream << stat_sms_text;
-        sms_stat.close();
-        delete sms_stat_stream;
+            // sms_stat.txt
+            QFile sms_stat(path+"/CFG_CONTENT/sms_stat.txt");
+            sms_stat.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * sms_stat_stream = new QTextStream(&sms_stat);
+            *sms_stat_stream << stat_sms_text;
+            sms_stat.close();
+            delete sms_stat_stream;
 
-        // sms_proto.txt
-        QFile sms_proto(path+"/CFG_CONTENT/sms_proto.txt");
-        sms_proto.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * sms_proto_stream = new QTextStream(&sms_proto);
-        *sms_proto_stream << proto_sms_text;
-        sms_proto.close();
-        delete sms_proto_stream;
+            // sms_proto.txt
+            QFile sms_proto(path+"/CFG_CONTENT/sms_proto.txt");
+            sms_proto.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * sms_proto_stream = new QTextStream(&sms_proto);
+            *sms_proto_stream << proto_sms_text;
+            sms_proto.close();
+            delete sms_proto_stream;
+        }
 
         // sms_nums.txt
-        QFile sms_nums(path+"/CFG_CONTENT/sms_nums.txt");
-        sms_nums.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * sms_nums_stream = new QTextStream(&sms_nums);
-        *sms_nums_stream << "start sms number: " << start_sms_number << endl;
-        *sms_nums_stream << "stat sms number: " << stat_sms_number << endl;
-        *sms_nums_stream << "alarm sms number: " << alarm_sms_number << endl;
-        *sms_nums_stream << "proto sms number: " << proto_sms_number << endl;
-        sms_nums.close();
-        delete sms_nums_stream;
+        if(data_to_export.contactExpEnable)
+        {
+            QFile sms_nums(path+"/CFG_CONTENT/sms_nums.txt");
+            sms_nums.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * sms_nums_stream = new QTextStream(&sms_nums);
+            *sms_nums_stream << "start sms number: " << start_sms_number << endl;
+            *sms_nums_stream << "stat sms number: " << stat_sms_number << endl;
+            *sms_nums_stream << "alarm sms number: " << alarm_sms_number << endl;
+            *sms_nums_stream << "proto sms number: " << proto_sms_number << endl;
+            sms_nums.close();
+            delete sms_nums_stream;
+        }
 
         // sms_send.txt
-        QFile sms_send(path+"/CFG_CONTENT/sms_send.txt");
-        sms_send.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * sms_send_stream = new QTextStream(&sms_send);
-        *sms_send_stream << "start sms send: " << (start_sms_enabled ? "YES" : "NO") << endl;
-        *sms_send_stream << "stat sms send: " << (stat_sms_enabled ? "YES" : "NO") << endl;
-        *sms_send_stream << "alarm sms send: " << (alarm_sms_enabled ? "YES" : "NO") << endl;
-        *sms_send_stream << "proto sms send: " << (proto_sms_enabled ? "YES" : "NO") << endl;
-        sms_send.close();
-        delete sms_send_stream;
+        if(data_to_export.smsExpEnable)
+        {
+            QFile sms_send(path+"/CFG_CONTENT/sms_send.txt");
+            sms_send.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * sms_send_stream = new QTextStream(&sms_send);
+            *sms_send_stream << "start sms send: " << (start_sms_enabled ? "YES" : "NO") << endl;
+            *sms_send_stream << "stat sms send: " << (stat_sms_enabled ? "YES" : "NO") << endl;
+            *sms_send_stream << "alarm sms send: " << (alarm_sms_enabled ? "YES" : "NO") << endl;
+            *sms_send_stream << "proto sms send: " << (proto_sms_enabled ? "YES" : "NO") << endl;
+            sms_send.close();
+            delete sms_send_stream;
+        }
 
         // bmp_cfg.txt
-        QFile bmp_cfg(path+"/SD_CONTENT/bmp_cfg.txt");
-        bmp_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * bmp_cfg_stream = new QTextStream(&bmp_cfg);
-        for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+        if(data_to_export.imagesExpEnable)
         {
-            // save image
-            QString role_code_final(QString("%1").arg((*it)->getImageRole(), 3, 10, QChar('0')));
-            QFile::copy((*it)->getImagePath(),path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
-            //QFile export_image(path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
-            //QImage export_img = (*it)->toImage().convertToFormat(QImage::Format_RGB16);
-            //export_img.save(&export_image, "BMP", 0);
-            // create record to config file
-            QPointF real_LB = calculateRealCoordinates((*it)->getLBCorner());
-            *bmp_cfg_stream << role_code_final << "    " << (int)(real_LB.x()) <<
-                            " " << (int)(real_LB.y()) << " " << "1" << "    " << (int)(calculateRealAngle((*it)->getItemRotation())) << endl;
+            QFile bmp_cfg(path+"/SD_CONTENT/bmp_cfg.txt");
+            bmp_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * bmp_cfg_stream = new QTextStream(&bmp_cfg);
+            for(QList<image_handler * >::iterator it=imageItems->begin(); it!=imageItems->end(); it++)
+            {
+                // save image
+                QString role_code_final(QString("%1").arg((*it)->getImageRole(), 3, 10, QChar('0')));
+                QFile::copy((*it)->getImagePath(),path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
+                //QFile export_image(path+"/SD_CONTENT/BMP/pic_"+role_code_final+".bmp");
+                //QImage export_img = (*it)->toImage().convertToFormat(QImage::Format_RGB16);
+                //export_img.save(&export_image, "BMP", 0);
+                // create record to config file
+                QPointF real_LB = calculateRealCoordinates((*it)->getLBCorner());
+                *bmp_cfg_stream << role_code_final << "    " << (int)(real_LB.x()) <<
+                                " " << (int)(real_LB.y()) << " " << "1" << "    " << (int)(calculateRealAngle((*it)->getItemRotation())) << endl;
+            }
+            bmp_cfg.close();
+            delete bmp_cfg_stream;
         }
-        bmp_cfg.close();
-        delete bmp_cfg_stream;
 
         // wav_cfg.txt
-        QFile wav_cfg(path+"/SD_CONTENT/wav_cfg.txt");
-        wav_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * wav_cfg_stream = new QTextStream(&wav_cfg);
-        for(QList<sound_handler * >::iterator it=soundItems->begin(); it!=soundItems->end(); it++)
+        if(data_to_export.soundsExpEnable)
         {
-            // save sound
-            QString role_code_final(QString("%1").arg((*it)->getSoundRole(), 3, 10, QChar('0')));
-            QFile::copy((*it)->getSoundPath(),path+"/SD_CONTENT/SOUND/snd_"+role_code_final+".wav");
-            // create record to config file
-            *wav_cfg_stream << role_code_final << " " << (*it)->isEnabled() << " " << (*it)->getVolumeLevel() << endl;
+            QFile wav_cfg(path+"/SD_CONTENT/wav_cfg.txt");
+            wav_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * wav_cfg_stream = new QTextStream(&wav_cfg);
+            for(QList<sound_handler * >::iterator it=soundItems->begin(); it!=soundItems->end(); it++)
+            {
+                // save sound
+                QString role_code_final(QString("%1").arg((*it)->getSoundRole(), 3, 10, QChar('0')));
+                QFile::copy((*it)->getSoundPath(),path+"/SD_CONTENT/SOUND/snd_"+role_code_final+".wav");
+                // create record to config file
+                *wav_cfg_stream << role_code_final << " " << (*it)->isEnabled() << " " << (*it)->getVolumeLevel() << endl;
+            }
+            wav_cfg.close();
+            delete wav_cfg_stream;
         }
-        wav_cfg.close();
-        delete wav_cfg_stream;
 
         // apn_cfg.txt
-        QFile apn_cfg(path+"/SD_CONTENT/apn_cfg.txt");
-        apn_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
-        QTextStream * apn_cfg_stream = new QTextStream(&apn_cfg);
-        *apn_cfg_stream << "APN: " << ap_name << endl;
-        *apn_cfg_stream << "login: " << login << endl;
-        *apn_cfg_stream << "password: " << password << endl;
-        *apn_cfg_stream << "request_password: " << (request_password ? "YES" : "NO") << endl;
-        *apn_cfg_stream << "use_proxy: " << (use_proxy ? "YES" : "NO") << endl;
-        switch(addr_mode)
+        if(data_to_export.apnExpEnable)
         {
-            case IP_ADDR:
-                *apn_cfg_stream << "address_mode: " << "IP" << endl;
-                break;
-            case TEXT:
-                *apn_cfg_stream << "address_mode: " << "TEXT" << endl;
-                break;
-            default:
-                *apn_cfg_stream << "address_mode: " << "TEXT" << endl;
-                break;
-        }
-        *apn_cfg_stream << "address: " << address << endl;
-        *apn_cfg_stream << "DNS1: " << DNS1 << endl;
-        *apn_cfg_stream << "DNS2: " << DNS2 << endl;
+            QFile apn_cfg(path+"/CFG_CONTENT/apn_cfg.txt");
+            apn_cfg.open(QIODevice::WriteOnly | QIODevice::Text);
+            QTextStream * apn_cfg_stream = new QTextStream(&apn_cfg);
+            *apn_cfg_stream << "APN: " << ap_name << endl;
+            *apn_cfg_stream << "login: " << login << endl;
+            *apn_cfg_stream << "password: " << password << endl;
+            *apn_cfg_stream << "request_password: " << (request_password ? "YES" : "NO") << endl;
+            *apn_cfg_stream << "use_proxy: " << (use_proxy ? "YES" : "NO") << endl;
+            switch(addr_mode)
+            {
+                case IP_ADDR:
+                    *apn_cfg_stream << "address_mode: " << "IP" << endl;
+                    break;
+                case TEXT:
+                    *apn_cfg_stream << "address_mode: " << "TEXT" << endl;
+                    break;
+                default:
+                    *apn_cfg_stream << "address_mode: " << "TEXT" << endl;
+                    break;
+            }
+            *apn_cfg_stream << "address: " << address << endl;
+            *apn_cfg_stream << "DNS1: " << DNS1 << endl;
+            *apn_cfg_stream << "DNS2: " << DNS2 << endl;
 
-        apn_cfg.close();
-        delete apn_cfg_stream;
+            apn_cfg.close();
+            delete apn_cfg_stream;
+        }
     }
 }
 
@@ -1943,6 +1974,13 @@ void MainWindow::apnConfigurationWindow()
     dialog.exec();
 }
 
+void MainWindow::selectExportsWindow()
+{
+    exportSelectorDialog dialog(&data_to_export, this);
+
+    dialog.exec();
+}
+
 
 void MainWindow::removeAllDisplayedItems()
 {
@@ -1961,6 +1999,6 @@ void MainWindow::aboutSlot()
     QMessageBox::about(this, tr("About Image Dispozer"), tr("<b>Image Dispozer</b><br><br>"
                                                             "Based on Qt 5.4.1 (MSVC 2010, 32 bit)<br><br>"
                                                             "Build on 5. 7. 2015, 21:05<br><br>"
-                                                            "Version: 0.1.134"));
+                                                            "Version: 0.1.141"));
 }
 

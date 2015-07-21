@@ -330,6 +330,16 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>selectDirectoryButton</tabstop>
+  <tabstop>selectImageButton</tabstop>
+  <tabstop>removeSelectedButton</tabstop>
+  <tabstop>linkButton</tabstop>
+  <tabstop>unlinkButton</tabstop>
+  <tabstop>incrementalSwitchCheckbox</tabstop>
+  <tabstop>rolesTree</tabstop>
+  <tabstop>importedImagesList</tabstop>
+ </tabstops>
  <resources>
   <include location="icons.qrc"/>
  </resources>

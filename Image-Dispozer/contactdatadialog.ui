@@ -27,10 +27,24 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="7" column="1">
-    <widget class="QLineEdit" name="protocolSmsEdit"/>
+    <widget class="QLineEdit" name="protocolSmsEdit">
+     <property name="statusTip">
+      <string>Phone number for sending &quot;Protocol&quot;  SMS</string>
+     </property>
+     <property name="whatsThis">
+      <string>Phone number for sending &quot;Protocol&quot;  SMS.</string>
+     </property>
+    </widget>
    </item>
    <item row="6" column="1">
-    <widget class="QLineEdit" name="alarmSmsEdit"/>
+    <widget class="QLineEdit" name="alarmSmsEdit">
+     <property name="statusTip">
+      <string>Phone number for sending &quot;Alarm&quot;  SMS</string>
+     </property>
+     <property name="whatsThis">
+      <string>Phone number for sending &quot;Alarm&quot;  SMS.</string>
+     </property>
+    </widget>
    </item>
    <item row="12" column="1">
     <widget class="QWidget" name="buttonsWrapper" native="true">
@@ -68,7 +82,14 @@
     </widget>
    </item>
    <item row="4" column="1">
-    <widget class="QLineEdit" name="startSmsEdit"/>
+    <widget class="QLineEdit" name="startSmsEdit">
+     <property name="statusTip">
+      <string>Phone number for sending &quot;Start&quot;  SMS</string>
+     </property>
+     <property name="whatsThis">
+      <string>Phone number for sending &quot;Start&quot;  SMS.</string>
+     </property>
+    </widget>
    </item>
    <item row="4" column="0">
     <widget class="QLabel" name="startSmsLabel">
@@ -91,7 +112,14 @@
     </widget>
    </item>
    <item row="5" column="1">
-    <widget class="QLineEdit" name="statusSmsEdit"/>
+    <widget class="QLineEdit" name="statusSmsEdit">
+     <property name="statusTip">
+      <string>Phone number for sending &quot;Status&quot;  SMS</string>
+     </property>
+     <property name="whatsThis">
+      <string>Phone number for sending &quot;Status&quot;  SMS.</string>
+     </property>
+    </widget>
    </item>
    <item row="6" column="0">
     <widget class="QLabel" name="alarmSmsNumber">
@@ -104,10 +132,24 @@
     </widget>
    </item>
    <item row="9" column="1">
-    <widget class="QLineEdit" name="callNumEdit2"/>
+    <widget class="QLineEdit" name="callNumEdit2">
+     <property name="whatsThis">
+      <string>Contact phone number</string>
+     </property>
+     <property name="accessibleName">
+      <string>Contact phone number.</string>
+     </property>
+    </widget>
    </item>
    <item row="8" column="1">
-    <widget class="QLineEdit" name="callNumEdit1"/>
+    <widget class="QLineEdit" name="callNumEdit1">
+     <property name="whatsThis">
+      <string>Contact phone number</string>
+     </property>
+     <property name="accessibleName">
+      <string>Contact phone number.</string>
+     </property>
+    </widget>
    </item>
    <item row="7" column="0">
     <widget class="QLabel" name="protocolSmsNumber">
@@ -120,10 +162,24 @@
     </widget>
    </item>
    <item row="10" column="1">
-    <widget class="QLineEdit" name="callNumEdit3"/>
+    <widget class="QLineEdit" name="callNumEdit3">
+     <property name="whatsThis">
+      <string>Contact phone number</string>
+     </property>
+     <property name="accessibleName">
+      <string>Contact phone number.</string>
+     </property>
+    </widget>
    </item>
    <item row="11" column="1">
-    <widget class="QLineEdit" name="callNumEdit4"/>
+    <widget class="QLineEdit" name="callNumEdit4">
+     <property name="whatsThis">
+      <string>Contact phone number</string>
+     </property>
+     <property name="accessibleName">
+      <string>Contact phone number.</string>
+     </property>
+    </widget>
    </item>
    <item row="8" column="0">
     <widget class="QLabel" name="callNumLabel1">
@@ -167,6 +223,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>startSmsEdit</tabstop>
+  <tabstop>statusSmsEdit</tabstop>
+  <tabstop>alarmSmsEdit</tabstop>
+  <tabstop>protocolSmsEdit</tabstop>
+  <tabstop>callNumEdit1</tabstop>
+  <tabstop>callNumEdit2</tabstop>
+  <tabstop>callNumEdit3</tabstop>
+  <tabstop>callNumEdit4</tabstop>
+  <tabstop>confirmationButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

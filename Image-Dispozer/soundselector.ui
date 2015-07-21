@@ -20,7 +20,7 @@
       <string>Role tree</string>
      </property>
      <property name="whatsThis">
-      <string>This is tree of associated and not associated roles (aliases) for images. Note that each role must be linked with one image before table export. However you can use the workspace even although not all roles are reserved yet</string>
+      <string>This is tree of associated and not associated roles (aliases) for sounds. Note that each role must be linked with one sound before table export. However you can use the workspace even although not all roles are reserved yet</string>
      </property>
      <property name="accessibleName">
       <string/>
@@ -118,10 +118,10 @@
          </size>
         </property>
         <property name="statusTip">
-         <string>Select directory with images to be load</string>
+         <string>Select directory with sounds to be loaded</string>
         </property>
         <property name="whatsThis">
-         <string>Click this button to evoke dialog window for selecting directory with PNG, JPG or BMP images to be loaded</string>
+         <string>Click this button to evoke dialog window for selecting directory with WAV sounds to be loaded</string>
         </property>
         <property name="text">
          <string>Select directory</string>
@@ -141,10 +141,10 @@
          </size>
         </property>
         <property name="statusTip">
-         <string>Select single image or few images to load</string>
+         <string>Select single sound or few sounds to load</string>
         </property>
         <property name="whatsThis">
-         <string>Click this button to evoke dialog window for direct selection of single image, or multiple set of images</string>
+         <string>Click this button to evoke dialog window for direct selection of single sound, or multiple set of sounds</string>
         </property>
         <property name="text">
          <string>Select sound(s)</string>
@@ -170,10 +170,10 @@
          </size>
         </property>
         <property name="statusTip">
-         <string>Remove selected items in image list</string>
+         <string>Remove selected items in sound list</string>
         </property>
         <property name="whatsThis">
-         <string>Click this button if you wish to delete selected items in imported images list</string>
+         <string>Click this button if you wish to delete selected items in imported sounds list</string>
         </property>
         <property name="text">
          <string>Remove selected</string>
@@ -206,10 +206,10 @@
          </size>
         </property>
         <property name="statusTip">
-         <string>Links the selected image with selected role</string>
+         <string>Links the selected sound with selected role</string>
         </property>
         <property name="whatsThis">
-         <string>If single image is selected in image list and appropriate role is highlighted, image will be associated with selected role and become hidden in images list</string>
+         <string>If single sound is selected in sound list and appropriate role is highlighted, sound will be associated with selected role and become hidden in sounds list</string>
         </property>
         <property name="text">
          <string>Link</string>
@@ -235,10 +235,10 @@
          </size>
         </property>
         <property name="statusTip">
-         <string>Unlinks selected role with currently associated image</string>
+         <string>Unlinks selected role with currently associated sound</string>
         </property>
         <property name="whatsThis">
-         <string>If a role with associated image is selected, click this button to break up the connection between them. Unlinked image will appear back in image list</string>
+         <string>If a role with associated sound is selected, click this button to break up the connection between them. Unlinked sound will appear back in sound list</string>
         </property>
         <property name="text">
          <string>Unlink</string>
@@ -297,6 +297,12 @@
              <width>16777215</width>
              <height>15</height>
             </size>
+           </property>
+           <property name="statusTip">
+            <string>Volume setting</string>
+           </property>
+           <property name="whatsThis">
+            <string>This slider allows you to set up the volume level for current sound.  Volume level for other sounds will not be affected. If sound in imported sounds list is selected, this volume level represents the volume of all imported sounds and has no effect on associated sounds.</string>
            </property>
            <property name="maximum">
             <number>10</number>
@@ -366,6 +372,12 @@
              <height>15</height>
             </size>
            </property>
+           <property name="statusTip">
+            <string>Progress bar</string>
+           </property>
+           <property name="whatsThis">
+            <string>This slider represents the progress bar of sound currently being played.  You can use this slider to skip in sound file as well.</string>
+           </property>
            <property name="styleSheet">
             <string notr="true"/>
            </property>
@@ -403,6 +415,12 @@
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
              <widget class="QPushButton" name="stopSoundButton">
+              <property name="statusTip">
+               <string>Stop current playing</string>
+              </property>
+              <property name="whatsThis">
+               <string>Use this button to stop the currently played sound. Note that progress pointer will be returned to 0s state.</string>
+              </property>
               <property name="text">
                <string>Stop</string>
               </property>
@@ -410,6 +428,12 @@
             </item>
             <item>
              <widget class="QPushButton" name="playSoundButton">
+              <property name="statusTip">
+               <string>Play current sound</string>
+              </property>
+              <property name="whatsThis">
+               <string>Click this to play the sound currently selected.</string>
+              </property>
               <property name="text">
                <string>Play</string>
               </property>
@@ -434,7 +458,7 @@
          <string>Incremental switching option on/off</string>
         </property>
         <property name="whatsThis">
-         <string>This option allows to increment role item pointer to the next item if exists after association current role with image</string>
+         <string>This option allows to increment role item pointer to the next item if exists after association current role with sound</string>
         </property>
         <property name="layoutDirection">
          <enum>Qt::LeftToRight</enum>
@@ -453,7 +477,7 @@
       <string>Image list</string>
      </property>
      <property name="whatsThis">
-      <string>This list contains all images registered by program internally</string>
+      <string>This list contains all sounds registered by program internally</string>
      </property>
      <property name="styleSheet">
       <string notr="true">QListWidget {
@@ -467,6 +491,20 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>selectDirectoryButton</tabstop>
+  <tabstop>selectSoundButton</tabstop>
+  <tabstop>removeSelectedButton</tabstop>
+  <tabstop>linkButton</tabstop>
+  <tabstop>unlinkButton</tabstop>
+  <tabstop>volumeSlider</tabstop>
+  <tabstop>stopSoundButton</tabstop>
+  <tabstop>playSoundButton</tabstop>
+  <tabstop>progressSlider</tabstop>
+  <tabstop>incrementalSwitchCheckbox</tabstop>
+  <tabstop>rolesTree</tabstop>
+  <tabstop>importedSoundsList</tabstop>
+ </tabstops>
  <resources>
   <include location="icons.qrc"/>
  </resources>

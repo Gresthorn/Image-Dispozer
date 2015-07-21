@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     sound_handler.cpp \
     soundselector.cpp \
     ghostrect.cpp \
-    apnsettingsdialog.cpp
+    apnsettingsdialog.cpp \
+    exportselectordialog.cpp
 
 HEADERS  += mainwindow.h \
     imageselector.h \
@@ -47,7 +48,8 @@ HEADERS  += mainwindow.h \
     sound_handler.h \
     soundselector.h \
     ghostrect.h \
-    apnsettingsdialog.h
+    apnsettingsdialog.h \
+    exportselectordialog.h
 
 FORMS    += mainwindow.ui \
     imageselector.ui \
@@ -55,7 +57,8 @@ FORMS    += mainwindow.ui \
     maincfgdialog.ui \
     smscontentsdialog.ui \
     soundselector.ui \
-    apnsettingsdialog.ui
+    apnsettingsdialog.ui \
+    exportselectordialog.ui
 
 RESOURCES += \
     icons.qrc

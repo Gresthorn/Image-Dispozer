@@ -28,6 +28,12 @@
   <layout class="QGridLayout" name="gridLayout">
    <item row="7" column="0">
     <widget class="QCheckBox" name="protoSmsEnabled">
+     <property name="statusTip">
+      <string>Enable/Disable protocol SMS sending</string>
+     </property>
+     <property name="whatsThis">
+      <string>Enable/Disable protocol SMS sending.</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -35,6 +41,12 @@
    </item>
    <item row="5" column="0">
     <widget class="QCheckBox" name="alarmSmsEnabled">
+     <property name="statusTip">
+      <string>Enable/Disable alarm SMS sending</string>
+     </property>
+     <property name="whatsThis">
+      <string>Enable/Disable alarm SMS sending.</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -48,6 +60,12 @@
        <height>40</height>
       </size>
      </property>
+     <property name="statusTip">
+      <string>Status SMS text</string>
+     </property>
+     <property name="whatsThis">
+      <string>Status SMS text content.</string>
+     </property>
     </widget>
    </item>
    <item row="5" column="2" rowspan="2">
@@ -58,10 +76,22 @@
        <height>40</height>
       </size>
      </property>
+     <property name="statusTip">
+      <string>Alarm SMS text</string>
+     </property>
+     <property name="whatsThis">
+      <string>Alarm SMS text content.</string>
+     </property>
     </widget>
    </item>
    <item row="3" column="0">
     <widget class="QCheckBox" name="statSmsEnabled">
+     <property name="statusTip">
+      <string>Enable/Disable status SMS sending</string>
+     </property>
+     <property name="whatsThis">
+      <string>Enable/Disable status SMS sending.</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -84,6 +114,12 @@
        <width>16777215</width>
        <height>40</height>
       </size>
+     </property>
+     <property name="statusTip">
+      <string>Protocol SMS text</string>
+     </property>
+     <property name="whatsThis">
+      <string>Protocol SMS text content.</string>
      </property>
     </widget>
    </item>
@@ -140,6 +176,12 @@
        <height>40</height>
       </size>
      </property>
+     <property name="statusTip">
+      <string>Start SMS text</string>
+     </property>
+     <property name="whatsThis">
+      <string>Start SMS text content.</string>
+     </property>
     </widget>
    </item>
    <item row="5" column="1">
@@ -154,6 +196,12 @@
    </item>
    <item row="0" column="0" rowspan="2">
     <widget class="QCheckBox" name="startSmsEnabled">
+     <property name="statusTip">
+      <string>Enable/Disable start SMS sending</string>
+     </property>
+     <property name="whatsThis">
+      <string>Enable/Disable start SMS sending.</string>
+     </property>
      <property name="text">
       <string/>
      </property>
@@ -174,6 +222,18 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>startSmsEnabled</tabstop>
+  <tabstop>startSmsEdit</tabstop>
+  <tabstop>statSmsEnabled</tabstop>
+  <tabstop>statSmsEdit</tabstop>
+  <tabstop>alarmSmsEnabled</tabstop>
+  <tabstop>alarmSmsEdit</tabstop>
+  <tabstop>protoSmsEnabled</tabstop>
+  <tabstop>protoSmsEdit</tabstop>
+  <tabstop>confirmationButton</tabstop>
+  <tabstop>cancelButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
